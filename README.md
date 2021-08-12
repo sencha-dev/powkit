@@ -22,7 +22,12 @@ slightly from Ethash, `go-etchash` was generalized to handle the different
 requirements of DAG generation and implemented the native algorithm for Kawpow.
 
 For `ETC` and `RVN`, this will only work above the blocks for ECIP-1099 (`11700000` ) and the 
-Kawpow hard fork (`?`), respectively.
+Kawpow hard fork (`1219736`), respectively.
+
+Finally, this library only implements a light DAG - the full DAG is very large and there
+isn't really a use case for mining pools to use it. It wouldn't be too difficult to 
+implement though, it exists in `go-etchash` so it would just be a matter of adding
+the ProgPOW full DAG implementation.
 
 # Todos
 
