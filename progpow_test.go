@@ -1,6 +1,6 @@
-/* 
+/*
 test vectors taken from ProgPOW spec
-github.com/ifdefelse/ProgPOW/blob/master/test-vectors 
+github.com/ifdefelse/ProgPOW/blob/master/test-vectors
 */
 
 package pow
