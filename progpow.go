@@ -207,5 +207,5 @@ func hashMix(l1 []uint32, height uint64, seed [2]uint32, lookup func(index uint3
 		mixHash[l%numWords] = fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
-	return uint32Array2ByteArray(mixHash)
+	return uint32ArrayToBytes(mixHash)
 }

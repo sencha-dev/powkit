@@ -30,11 +30,13 @@ the ProgPOW full DAG implementation.
 # Todos
 
 - [X] Fix the Ravencoin algorithm to function properly
+- [X] Implement minimum block heights
 - [ ] Handle the L1 cache in ProgPOW more elegantly (memory map if needed)
 - [ ] Clean up Ravencoin generally to remove the hacky solutions currently implemented 
+- [ ] Remove ethereum dependency
 - [ ] Utility functions for difficulty validation
 - [ ] More extensive testing for `ETH`, `ETC`, and `RVN`
-- [ ] Implement minimum block heights
+- [ ] Implement testnet support
 
 # Usage
 
@@ -58,14 +60,16 @@ if err != nil {
 }
 ```
 
-To compute a mix and digest:
+To compute a mix and digest (*the only error `Compute`
+will return is if the height is below the chain's 
+minimum height*).
 
 ```go
-mix, digest := hasher.Compute(hash, height, nonce)
+mix, digest, err := hasher.Compute(hash, height, nonce)
 ```
 
 
-Full Example (ETH):
+Example (ETH):
 
 ```go
 package main
@@ -90,7 +94,44 @@ func main() {
 		panic(err)
 	}
 
-	mix, digest := hasher.Compute(hash, height, nonce)
+	mix, digest, err := hasher.Compute(hash, height, nonce)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(hex.EncodeToString(mix), hex.EncodeToString(digest))
+}
+```
+
+Example (RVN):
+
+```go
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+
+	"github.com/sencha-dev/go-pow"
+)
+
+func main() {
+	height := uint64(1881757)
+	nonce := uint64(96461238819045)
+	headerHash, err := hex.DecodeString("cf63e993ca10d7b6667cc6de7c896a6f32ffe49a3916ece271744030805489a3")
+	if err != nil {
+		panic(err)
+	}
+
+	hasher, err := NewLightDag("RVN")
+	if err != nil {
+		panic(err)
+	}
+
+	mix, digest, err := hasher.Compute(headerHash, height, nonce)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(hex.EncodeToString(mix), hex.EncodeToString(digest))
 }

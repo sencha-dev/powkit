@@ -29,17 +29,20 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/bitutil"
 	"github.com/ethereum/go-ethereum/log"
-	"golang.org/x/crypto/sha3"
 )
 
-// calcEpochLength returns the epoch length for a given block number (ECIP-1099)
-func calcEpochLength(block uint64, ecip1099FBlock *uint64) uint64 {
-	if ecip1099FBlock != nil {
-		if block >= *ecip1099FBlock {
-			return epochLengthECIP1099
-		}
+// seedHash is the seed to use for generating a verification cache and the mining
+// dataset.
+func seedHash(block uint64, epochLength uint64) []byte {
+	seed := make([]byte, 32)
+	if block < epochLength {
+		return seed
 	}
-	return epochLengthDefault
+	keccak256Hasher := NewKeccak256Hasher()
+	for i := 0; i < int(block/epochLength); i++ {
+		keccak256Hasher(seed, seed)
+	}
+	return seed
 }
 
 // calcEpoch returns the epoch for a given block number (ECIP-1099)
@@ -135,12 +138,12 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 		}
 	}()
 	// Create a hasher to reuse between invocations
-	keccak512 := makeHasher(sha3.NewLegacyKeccak512())
+	keccak512Hasher := NewKeccak512Hasher()
 
 	// Sequentially produce the initial dataset
-	keccak512(cache, seed)
+	keccak512Hasher(cache, seed)
 	for offset := uint64(hashBytes); offset < size; offset += hashBytes {
-		keccak512(cache[offset:], cache[offset-hashBytes:offset])
+		keccak512Hasher(cache[offset:], cache[offset-hashBytes:offset])
 		atomic.AddUint32(&progress, 1)
 	}
 	// Use a low-round version of randmemohash
@@ -154,7 +157,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 				xorOff = (binary.LittleEndian.Uint32(cache[dstOff:]) % uint32(rows)) * hashBytes
 			)
 			bitutil.XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
-			keccak512(cache[dstOff:], temp)
+			keccak512Hasher(cache[dstOff:], temp)
 
 			atomic.AddUint32(&progress, 1)
 		}
@@ -166,7 +169,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 }
 
 func generateL1Cache(cache []uint32) []uint32 {
-	keccak512Hasher := makeHasher(sha3.NewLegacyKeccak512())
+	keccak512Hasher := NewKeccak512Hasher()
 	l1CacheItems := (l1CacheSize / 256)
 	l1 := make([]uint32, l1CacheItems*4*hashWords)
 
@@ -214,38 +217,41 @@ func generateDatasetItem(cache []uint32, index uint32, keccak512 hasher, dataset
 	return mix
 }
 
-func generateDatasetItem1024(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
-	var fullData []uint32
+func generateDatasetItem512(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
+	data := make([]uint32, hashWords)
+	item := generateDatasetItem(cache, index, keccak512, datasetParents)
 
-	for n := 0; n < 2; n++ {
-		rawData := generateDatasetItem(cache, index*2+uint32(n), keccak512, datasetParents)
-
-		data := make([]uint32, len(rawData)/4)
-		for i := 0; i < len(data); i++ {
-			data[i] = binary.LittleEndian.Uint32(rawData[i*4:])
-		}
-
-		fullData = append(fullData, data...)
+	for i := 0; i < hashWords; i++ {
+		data[i] = binary.LittleEndian.Uint32(item[i*4:])
 	}
 
-	return fullData
+	return data
+}
+
+func generateDatasetItem1024(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
+	data := make([]uint32, hashWords*2)
+	for n := 0; n < 2; n++ {
+		item := generateDatasetItem(cache, index*2+uint32(n), keccak512, datasetParents)
+
+		for i := 0; i < hashWords; i++ {
+			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4:])
+		}
+	}
+
+	return data
 }
 
 func generateDatasetItem2048(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
-	var fullData []uint32
-
+	data := make([]uint32, hashWords*4)
 	for n := 0; n < 4; n++ {
-		rawData := generateDatasetItem(cache, index*4+uint32(n), keccak512, datasetParents)
+		item := generateDatasetItem(cache, index*4+uint32(n), keccak512, datasetParents)
 
-		data := make([]uint32, len(rawData)/4)
-		for i := 0; i < len(data); i++ {
-			data[i] = binary.LittleEndian.Uint32(rawData[i*4 : i*4+4])
+		for i := 0; i < hashWords; i++ {
+			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4 : i*4+4])
 		}
-
-		fullData = append(fullData, data...)
 	}
 
-	return fullData
+	return data
 }
 
 // generateDataset generates the entire ethash dataset for mining.
@@ -287,7 +293,7 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 			defer pend.Done()
 
 			// Create a hasher to reuse between invocations
-			keccak512 := makeHasher(sha3.NewLegacyKeccak512())
+			keccak512 := NewKeccak512Hasher()
 
 			// Calculate the data segment this thread should generate
 			batch := (size + hashBytes*uint64(threads) - 1) / (hashBytes * uint64(threads))

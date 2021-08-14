@@ -4,9 +4,6 @@ import (
 	"encoding/binary"
 	"reflect"
 	"testing"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"golang.org/x/crypto/sha3"
 )
 
 const epochLengthETH uint64 = 30000
@@ -69,27 +66,27 @@ func TestEpochSeedRVN(t *testing.T) {
 	}{
 		{
 			epoch: 0,
-			seed:  hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000"),
+			seed:  MustDecodeHex("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		},
 		{
 			epoch: 1,
-			seed:  hexutil.MustDecode("0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"),
+			seed:  MustDecodeHex("0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"),
 		},
 		{
 			epoch: 171,
-			seed:  hexutil.MustDecode("0xa9b0e0c9aca72c07ba06b5bbdae8b8f69e61878301508473379bb4f71807d707"),
+			seed:  MustDecodeHex("0xa9b0e0c9aca72c07ba06b5bbdae8b8f69e61878301508473379bb4f71807d707"),
 		},
 		{
 			epoch: 2048,
-			seed:  hexutil.MustDecode("0x20a7678ca7b50829183baac2e1e3c43fa3c4bcbc171b11cf5a9f30bebd172920"),
+			seed:  MustDecodeHex("0x20a7678ca7b50829183baac2e1e3c43fa3c4bcbc171b11cf5a9f30bebd172920"),
 		},
 		{
 			epoch: 29998,
-			seed:  hexutil.MustDecode("0x1222b1faed7f93098f8ae498621fb3479805a664b70186063861c46596c66164"),
+			seed:  MustDecodeHex("0x1222b1faed7f93098f8ae498621fb3479805a664b70186063861c46596c66164"),
 		},
 		{
 			epoch: 29999,
-			seed:  hexutil.MustDecode("0xee1d0f61b054dff0f3025ebba821d405c8dc19a983e582e9fa5436fc3e7a07d8"),
+			seed:  MustDecodeHex("0xee1d0f61b054dff0f3025ebba821d405c8dc19a983e582e9fa5436fc3e7a07d8"),
 		},
 	}
 
@@ -112,7 +109,7 @@ func TestCacheGenerationETH(t *testing.T) {
 		{
 			size:  1024,
 			epoch: 0,
-			cache: hexutil.MustDecode("0x" +
+			cache: MustDecodeHex("0x" +
 				"7ce2991c951f7bf4c4c1bb119887ee07871eb5339d7b97b8588e85c742de90e5bafd5bbe6ce93a134fb6be9ad3e30db99d9528a2ea7846833f52e9ca119b6b54" +
 				"8979480c46e19972bd0738779c932c1b43e665a2fd3122fc3ddb2691f353ceb0ed3e38b8f51fd55b6940290743563c9f8fa8822e611924657501a12aafab8a8d" +
 				"88fb5fbae3a99d14792406672e783a06940a42799b1c38bc28715db6d37cb11f9f6b24e386dc52dd8c286bd8c36fa813dffe4448a9f56ebcbeea866b42f68d22" +
@@ -133,7 +130,7 @@ func TestCacheGenerationETH(t *testing.T) {
 		{
 			size:  1024,
 			epoch: 1,
-			cache: hexutil.MustDecode("0x" +
+			cache: MustDecodeHex("0x" +
 				"1f56855d59cc5a085720899b4377a0198f1abe948d85fe5820dc0e346b7c0931b9cde8e541d751de3b2b3275d0aabfae316209d5879297d8bd99f8a033c9d4df" +
 				"35add1029f4e6404a022d504fb8023e42989aba985a65933b0109c7218854356f9284983c9e7de97de591828ae348b63d1fc78d8db58157344d4e06530ffd422" +
 				"5c7f6080d451ff94961ec2dd9e28e6d81b49102451676dbdcb6ef1094c1e8b29e7e808d47b2ba5aeb52dabf00d5f0ee08c116289cbf56d8132e5ca557c3d6220" +
@@ -176,7 +173,7 @@ func TestDatasetGenerationETH(t *testing.T) {
 			epoch:       0,
 			cacheSize:   1024,
 			datasetSize: 32 * 1024,
-			dataset: hexutil.MustDecode("0x" +
+			dataset: MustDecodeHex("0x" +
 				"4bc09fbd530a041dd2ec296110a29e8f130f179c59d223f51ecce3126e8b0c74326abc2f32ccd9d7f976bd0944e3ccf8479db39343cbbffa467046ca97e2da63" +
 				"da5f9d9688c7c33ab7b8aace570e422fa48b24659b72fc534669209d66389ca15b099c5604601e7581488e3bd6925cec0f12d465f8004d4fa84793f8e1e46a1b" +
 				"31b7298991c6142f4f0b6e6b296728ae5fa63ccb667b61fbb1b078003d18d97b906af157debed5e6c55d5a61cae90c85f9e97d565314a2f9fd9e0c08430547d0" +
@@ -715,16 +712,16 @@ func TestLightCacheGenerationRVN(t *testing.T) {
 	}{
 		{
 			epoch: 0,
-			hash:  hexutil.MustDecode("0x35ded12eecf2ce2e8da2e15c06d463aae9b84cb2530a00b932e4bbc484cde353"),
+			hash:  MustDecodeHex("0x35ded12eecf2ce2e8da2e15c06d463aae9b84cb2530a00b932e4bbc484cde353"),
 		},
 		{
 			epoch: 171,
-			hash:  hexutil.MustDecode("0x468ef97519bd780a0dbd19d46c099118d6f4b777c1b8d0d4b0d6f62a5018100e"),
+			hash:  MustDecodeHex("0x468ef97519bd780a0dbd19d46c099118d6f4b777c1b8d0d4b0d6f62a5018100e"),
 		},
 		/* @NOTE: epoch 2047 (~block 15,352,500) takes like 10 seconds
 		{
 			epoch: 2047,
-			hash: hexutil.MustDecode("0x47e5913c1f0ffffa5ba1049f6d7960259a5e7e8736e3f032cc7a04e7b29ffb42"),
+			hash: MustDecodeHex("0x47e5913c1f0ffffa5ba1049f6d7960259a5e7e8736e3f032cc7a04e7b29ffb42"),
 		},
 		*/
 	}
@@ -758,8 +755,8 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 		{
 			epoch: 13,
 			index: 0,
-			hash1: hexutil.MustDecode("0xbbae35d16fcdb5bd8f968cc3058d5122cc7d33051bcab1fb91b36611365a6ee5df00073f7af5ee474d0402796e8f861c586fdc0eb5fbc4fe882b5c7add3060f4"),
-			hash2: hexutil.MustDecode("0x03aaefbded42b87083cdefc33e05155de09e197c590310c1547e12a656fa7a56f4131bf8690a4075d1c4e86881b8c0dd2e8477d3af4f862c9a07e0a55d11eae5"),
+			hash1: MustDecodeHex("0xbbae35d16fcdb5bd8f968cc3058d5122cc7d33051bcab1fb91b36611365a6ee5df00073f7af5ee474d0402796e8f861c586fdc0eb5fbc4fe882b5c7add3060f4"),
+			hash2: MustDecodeHex("0x03aaefbded42b87083cdefc33e05155de09e197c590310c1547e12a656fa7a56f4131bf8690a4075d1c4e86881b8c0dd2e8477d3af4f862c9a07e0a55d11eae5"),
 		},
 	}
 
@@ -770,7 +767,7 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 		cache := make([]uint32, size/4)
 		generateCache(cache, tt.epoch, 7500, seed)
 
-		keccak512Hasher := makeHasher(sha3.NewLegacyKeccak512())
+		keccak512Hasher := NewKeccak512Hasher()
 		item1 := generateDatasetItem(cache, tt.index, keccak512Hasher, datasetParentsRVN)
 		item2 := generateDatasetItem(cache, tt.index+1, keccak512Hasher, datasetParentsRVN)
 

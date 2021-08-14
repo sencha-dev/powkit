@@ -105,9 +105,11 @@ type LightDag struct {
 	future *cache            // Pre-generated cache for the estimated future DAG
 
 	PowFunc        PowFunc
+	Chain          string
 	NumCaches      int // Maximum number of caches to keep before eviction (only init, don't modify)
 	DatasetParents int
 	EpochLength    uint64
+	MinimumHeight  uint64
 }
 
 func NewLightDag(chain string) (*LightDag, error) {
@@ -117,24 +119,30 @@ func NewLightDag(chain string) (*LightDag, error) {
 	switch chain {
 	case "ETH":
 		dag = &LightDag{
+			Chain:          "ETH",
 			PowFunc:        hashimotoLight,
 			EpochLength:    30000,
 			DatasetParents: 256,
 			NumCaches:      cachesOnDisk,
+			MinimumHeight:  0,
 		}
 	case "ETC":
 		dag = &LightDag{
+			Chain:          "ETC",
 			PowFunc:        hashimotoLight,
 			EpochLength:    60000,
 			DatasetParents: 256,
 			NumCaches:      cachesOnDisk,
+			MinimumHeight:  11700000,
 		}
 	case "RVN":
 		dag = &LightDag{
+			Chain:          "RVN",
 			PowFunc:        kawpowLight,
 			EpochLength:    7500,
 			DatasetParents: 512,
 			NumCaches:      cachesOnDisk,
+			MinimumHeight:  1219736,
 		}
 	default:
 		return nil, fmt.Errorf("%s is not supported", chain)
@@ -191,7 +199,11 @@ func (l *LightDag) getCache(epoch uint64) *cache {
 	return c
 }
 
-func (l *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte) {
+func (l *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
+	if height < l.MinimumHeight {
+		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, l.MinimumHeight, l.Chain)
+	}
+
 	epoch := calcEpoch(height, l.EpochLength)
 	dagSize := datasetSize(epoch)
 	if l.test {
@@ -199,6 +211,7 @@ func (l *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte) {
 	}
 
 	cache := l.getCache(epoch)
+	mix, digest := cache.compute(uint64(dagSize), height, nonce, hash)
 
-	return cache.compute(uint64(dagSize), height, nonce, hash)
+	return mix, digest, nil
 }

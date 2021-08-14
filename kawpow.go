@@ -2,8 +2,6 @@ package pow
 
 import (
 	"encoding/binary"
-
-	"golang.org/x/crypto/sha3"
 )
 
 func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
@@ -47,10 +45,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 
 	KeccakF800(&state)
 
-	digest := make([]byte, 32)
-	for i := 0; i < 8; i++ {
-		binary.LittleEndian.PutUint32(digest[i*4:], state[i])
-	}
+	digest := uint32ArrayToBytes(state[:8])
 
 	return mixHash, digest
 }
@@ -59,7 +54,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 // in-memory cache) in order to produce our final value for a particular header
 // hash and nonce.
 func kawpowLight(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte) {
-	keccak512Hasher := makeHasher(sha3.NewLegacyKeccak512())
+	keccak512Hasher := NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
 		return generateDatasetItem2048(cache, index, keccak512Hasher, datasetParentsRVN)
 	}

@@ -2,16 +2,14 @@ package pow
 
 import (
 	"encoding/binary"
-	"hash"
+	"encoding/hex"
 	"math/bits"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"unsafe"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"golang.org/x/crypto/sha3"
 )
 
 const FNV_PRIME uint32 = 0x01000193
@@ -37,7 +35,7 @@ func isLittleEndian() bool {
 
 /* Array utils */
 
-func uint32Array2ByteArray(c []uint32) []byte {
+func uint32ArrayToBytes(c []uint32) []byte {
 	buf := make([]byte, len(c)*4)
 	if isLittleEndian() {
 		for i, v := range c {
@@ -51,67 +49,17 @@ func uint32Array2ByteArray(c []uint32) []byte {
 	return buf
 }
 
-func uint32Array2Keccak256(data []uint32) string {
-	// convert to bytes
-	bytes := uint32Array2ByteArray(data)
-	// hash with keccak256
-	digest := Keccak256(bytes)
-	// return hex string
-	return hexutil.Encode(digest)
-}
+/* Hex utils */
 
-/* Hash utils */
-
-func Keccak256(b []byte) []byte {
-	d := sha3.NewLegacyKeccak256()
-	d.Write(b)
-	return d.Sum(nil)
-}
-
-func Keccak512(b []byte) []byte {
-	d := sha3.NewLegacyKeccak512()
-	d.Write(b)
-	return d.Sum(nil)
-}
-
-// hasher is a repetitive hasher allowing the same hash data structures to be
-// reused between hash runs instead of requiring new ones to be created.
-type hasher func(dest []byte, data []byte)
-
-// makeHasher creates a repetitive hasher, allowing the same hash data structures to
-// be reused between hash runs instead of requiring new ones to be created. The returned
-// function is not thread safe!
-func makeHasher(h hash.Hash) hasher {
-	// sha3.state supports Read to get the sum, use it to avoid the overhead of Sum.
-	// Read alters the state but we reset the hash before every operation.
-	type readerHash interface {
-		hash.Hash
-		Read([]byte) (int, error)
+// should only be used for tests
+func MustDecodeHex(inp string) []byte {
+	inp = strings.Replace(inp, "0x", "", -1)
+	out, err := hex.DecodeString(inp)
+	if err != nil {
+		panic(err)
 	}
-	rh, ok := h.(readerHash)
-	if !ok {
-		panic("can't find Read method on hash")
-	}
-	outputLen := rh.Size()
-	return func(dest []byte, data []byte) {
-		rh.Reset()
-		rh.Write(data)
-		rh.Read(dest[:outputLen])
-	}
-}
 
-// seedHash is the seed to use for generating a verification cache and the mining
-// dataset.
-func seedHash(block uint64, epochLength uint64) []byte {
-	seed := make([]byte, 32)
-	if block < epochLength {
-		return seed
-	}
-	keccak256 := makeHasher(sha3.NewLegacyKeccak256())
-	for i := 0; i < int(block/epochLength); i++ {
-		keccak256(seed, seed)
-	}
-	return seed
+	return out
 }
 
 /* Math utils */
