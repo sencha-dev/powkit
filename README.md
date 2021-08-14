@@ -3,7 +3,7 @@
 This is a library designed for Proof of Work validation
 for chains that require a DAG - generally this refers
 to Ethash or ProgPOW chains. Currently `ethereum`, 
-`ethereum classic`, and `ravencoin`. 
+`ethereum classic`, and `ravencoin` are supported. 
 
 The library is built for mining pools, so it only
 returns the mix and digest, leaving the difficulty
@@ -44,17 +44,17 @@ To instantiate the DAG (*the only error `NewLightDag`
 will return is if the chain symbol is not supported*).
 
 ```go
-hasher, err := NewLightDag("ETH")
+dag, err := NewLightDag("ETH")
 if err != nil {
 	panic(err)
 }
 
-hasher, err := NewLightDag("ETC")
+dag, err := NewLightDag("ETC")
 if err != nil {
 	panic(err)
 }
 
-hasher, err := NewLightDag("RVN")
+dag, err := NewLightDag("RVN")
 if err != nil {
 	panic(err)
 }
@@ -65,7 +65,7 @@ will return is if the height is below the chain's
 minimum height*).
 
 ```go
-mix, digest, err := hasher.Compute(hash, height, nonce)
+mix, digest, err := dag.Compute(hash, height, nonce)
 ```
 
 
@@ -89,12 +89,12 @@ func main() {
 		panic(err)
 	}
 
-	hasher, err := pow.NewLightDag("ETH")
+	dag, err := pow.NewLightDag("ETH")
 	if err != nil {
 		panic(err)
 	}
 
-	mix, digest, err := hasher.Compute(hash, height, nonce)
+	mix, digest, err := dag.Compute(hash, height, nonce)
 	if err != nil {
 		panic(err)
 	}
@@ -123,12 +123,12 @@ func main() {
 		panic(err)
 	}
 
-	hasher, err := pow.NewLightDag("RVN")
+	dag, err := pow.NewLightDag("RVN")
 	if err != nil {
 		panic(err)
 	}
 
-	mix, digest, err := hasher.Compute(headerHash, height, nonce)
+	mix, digest, err := dag.Compute(headerHash, height, nonce)
 	if err != nil {
 		panic(err)
 	}
