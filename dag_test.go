@@ -41,7 +41,6 @@ func TestVerifyETH(t *testing.T) {
 	}
 }
 
-/*
 func TestVerifyRVN(t *testing.T) {
 	hasher, err := NewLightDag("RVN")
 	if err != nil {
@@ -67,4 +66,4 @@ func TestVerifyRVN(t *testing.T) {
 	if bytes.Compare(expectedDigest, actualDigest) != 0 {
 		t.Errorf("digest: rvn does not match")
 	}
-}*/
+}

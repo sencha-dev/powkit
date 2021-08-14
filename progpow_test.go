@@ -5,7 +5,6 @@ github.com/ifdefelse/ProgPOW/blob/master/test-vectors
 
 package pow
 
-/*
 import (
 	"testing"
 )
@@ -155,7 +154,7 @@ func TestInitMix(t *testing.T) {
 			}
 		}
 	}
-}
+}*/
 
 func TestRandomMath(t *testing.T) {
 	cases := [][4]uint32{
@@ -195,4 +194,4 @@ func TestRandomMerge(t *testing.T) {
 			t.Errorf("failed randomMerge test on case %d", i)
 		}
 	}
-}*/
+}
