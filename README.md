@@ -89,7 +89,7 @@ func main() {
 		panic(err)
 	}
 
-	hasher, err := NewLightDag("ETH")
+	hasher, err := pow.NewLightDag("ETH")
 	if err != nil {
 		panic(err)
 	}
@@ -123,7 +123,7 @@ func main() {
 		panic(err)
 	}
 
-	hasher, err := NewLightDag("RVN")
+	hasher, err := pow.NewLightDag("RVN")
 	if err != nil {
 		panic(err)
 	}

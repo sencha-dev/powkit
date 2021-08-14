@@ -1,5 +1,6 @@
 package pow
 
+/*
 import (
 	"encoding/binary"
 	"reflect"
@@ -723,7 +724,7 @@ func TestLightCacheGenerationRVN(t *testing.T) {
 			epoch: 2047,
 			hash: MustDecodeHex("0x47e5913c1f0ffffa5ba1049f6d7960259a5e7e8736e3f032cc7a04e7b29ffb42"),
 		},
-		*/
+
 	}
 	for i, tt := range tests {
 		size := cacheSize(tt.epoch)
@@ -779,4 +780,4 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 			t.Errorf("cache %d: content mismatch: have %x, want %x", i, item2, tt.hash2)
 		}
 	}
-}
+}*/
