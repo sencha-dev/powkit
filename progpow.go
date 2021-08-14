@@ -22,19 +22,21 @@ type MixRngState struct {
 	Rng        *Kiss99
 }
 
-func (s MixRngState) nextDst() uint32 {
+func (s *MixRngState) nextDst() uint32 {
 	val := s.DstSeq[s.DstCounter%numRegs]
+	s.DstCounter++
 
 	return val
 }
 
-func (s MixRngState) nextSrc() uint32 {
+func (s *MixRngState) nextSrc() uint32 {
 	val := s.SrcSeq[s.SrcCounter%numRegs]
+	s.SrcCounter++
 
 	return val
 }
 
-func initMixRngState(seed uint64) MixRngState {
+func initMixRngState(seed uint64) *MixRngState {
 	var z, w, jsr, jcong uint32
 
 	z = fnv1a(FNV_OFFSET_BASIS, uint32(seed))
@@ -61,7 +63,7 @@ func initMixRngState(seed uint64) MixRngState {
 		srcSeq[i-1], srcSeq[srcInd] = srcSeq[srcInd], srcSeq[i-1]
 	}
 
-	return MixRngState{0, 0, srcSeq, dstSeq, rng}
+	return &MixRngState{0, 0, srcSeq, dstSeq, rng}
 }
 
 type Kiss99 struct {
@@ -121,9 +123,7 @@ func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64,
 
 		if i < numCacheAccesses {
 			src := state.nextSrc()
-			state.SrcCounter++
 			dst := state.nextDst()
-			state.DstCounter++
 			sel := state.Rng.Next()
 
 			for l := 0; l < int(numLanes); l++ {
@@ -142,7 +142,6 @@ func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64,
 
 			sel1 := state.Rng.Next()
 			dst := state.nextDst()
-			state.DstCounter++
 			sel2 := state.Rng.Next()
 
 			for l := 0; l < int(numLanes); l++ {
@@ -160,7 +159,6 @@ func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64,
 			dsts[i] = 0
 		} else {
 			dsts[i] = state.nextDst()
-			state.DstCounter++
 		}
 
 		sels[i] = state.Rng.Next()

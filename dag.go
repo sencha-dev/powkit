@@ -19,7 +19,6 @@ type cache struct {
 	dump        *os.File
 	mmap        mmap.MMap
 	cache       []uint32
-	l1          []uint32
 	once        sync.Once
 	used        time.Time
 	epochLength uint64
@@ -27,13 +26,10 @@ type cache struct {
 }
 
 // generate ensures that the cache content is generated before use.
-func (c *cache) generate(dir string, limit int, lock bool, test bool) {
+func (c *cache) generate(dir string, limit int, lock bool) {
 	c.once.Do(func() {
 		size := cacheSize(c.epoch)
 		seed := seedHash(c.epoch*c.epochLength+1, c.epochLength)
-		if test {
-			size = 1024
-		}
 
 		// If we don't store anything on disk, generate and return.
 		if dir == "" {
@@ -93,14 +89,13 @@ func (c *cache) compute(dagSize, height, nonce uint64, hash []byte) ([]byte, []b
 }
 
 type LightDag struct {
-	test bool // If set, use a smaller cache size
-
 	mu     sync.Mutex        // Protects the per-epoch map of verification caches
 	caches map[uint64]*cache // Currently maintained verification caches
 	future *cache            // Pre-generated cache for the estimated future DAG
 
 	PowFunc        PowFunc
 	Chain          string
+	Algorithm      string
 	NumCaches      int // Maximum number of caches to keep before eviction (only init, don't modify)
 	DatasetParents int
 	EpochLength    uint64
@@ -115,6 +110,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 	case "ETH":
 		dag = &LightDag{
 			Chain:          "ETH",
+			Algorithm:      "ethash",
 			PowFunc:        hashimotoLight,
 			EpochLength:    30000,
 			DatasetParents: 256,
@@ -124,6 +120,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 	case "ETC":
 		dag = &LightDag{
 			Chain:          "ETC",
+			Algorithm:      "etchash",
 			PowFunc:        hashimotoLight,
 			EpochLength:    60000,
 			DatasetParents: 256,
@@ -133,6 +130,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 	case "RVN":
 		dag = &LightDag{
 			Chain:          "RVN",
+			Algorithm:      "kawpow",
 			PowFunc:        kawpowLight,
 			EpochLength:    7500,
 			DatasetParents: 512,
@@ -146,66 +144,63 @@ func NewLightDag(chain string) (*LightDag, error) {
 	return dag, nil
 }
 
-func (l *LightDag) getCache(epoch uint64) *cache {
+func (dag *LightDag) getCache(epoch uint64) *cache {
 	var c *cache
 
-	l.mu.Lock()
-	if l.caches == nil {
-		l.caches = make(map[uint64]*cache)
+	dag.mu.Lock()
+	if dag.caches == nil {
+		dag.caches = make(map[uint64]*cache)
 	}
 
-	c = l.caches[epoch]
+	c = dag.caches[epoch]
 	if c == nil {
 		// if cache limit is reached, evict the oldest cache entry
-		if len(l.caches) >= l.NumCaches {
+		if len(dag.caches) >= dag.NumCaches {
 			var evict *cache
-			for _, cache := range l.caches {
+			for _, cache := range dag.caches {
 				if evict == nil || evict.used.After(cache.used) {
 					evict = cache
 				}
 			}
 			// DEBUG: fmt.Sprintf("evicting dag for epoch %d in favor of %d", evict.epoch, epoch)
-			delete(l.caches, evict.epoch)
+			delete(dag.caches, evict.epoch)
 		}
 
 		// use the pre generated dag if exists
-		if l.future != nil && l.future.epoch == epoch {
+		if dag.future != nil && dag.future.epoch == epoch {
 			// DEBUG: fmt.Sprintf("using pre-generated dag for epoch %d", epoch)
-			c, l.future = l.future, nil
+			c, dag.future = dag.future, nil
 		} else {
 			// DEBUG: fmt.Sprintf("creating new dag for epoch %d", epoch)
-			c = &cache{epoch: epoch, epochLength: l.EpochLength, powFunc: l.PowFunc}
+			c = &cache{epoch: epoch, epochLength: dag.EpochLength, powFunc: dag.PowFunc}
 		}
 
-		l.caches[epoch] = c
+		dag.caches[epoch] = c
 		nextEpoch := epoch + 1
-		if l.future == nil || l.future.epoch <= epoch {
+		if dag.future == nil || dag.future.epoch <= epoch {
 			// DEBUG: fmt.Sprintf("pre-generating dag for epoch %d", nextEpoch)
-			l.future = &cache{epoch: nextEpoch, epochLength: l.EpochLength, powFunc: l.PowFunc}
-			go l.future.generate(defaultDir(), l.NumCaches, cachesLockMmap, l.test)
+			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength, powFunc: dag.PowFunc}
+			go dag.future.generate(defaultDir(), dag.NumCaches, cachesLockMmap)
 		}
 	}
 
 	c.used = time.Now()
-	l.mu.Unlock()
+	dag.mu.Unlock()
 
-	c.generate(defaultDir(), cachesOnDisk, cachesLockMmap, l.test)
+	c.generate(defaultDir(), dag.NumCaches, cachesLockMmap)
 
 	return c
 }
 
-func (l *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
-	if height < l.MinimumHeight {
-		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, l.MinimumHeight, l.Chain)
+func (dag *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
+	if height < dag.MinimumHeight {
+		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, dag.MinimumHeight, dag.Chain)
 	}
 
-	epoch := calcEpoch(height, l.EpochLength)
+	epoch := calcEpoch(height, dag.EpochLength)
 	dagSize := datasetSize(epoch)
-	if l.test {
-		dagSize = dagSizeForTesting
-	}
 
-	cache := l.getCache(epoch)
+	cache := dag.getCache(epoch)
 	mix, digest := cache.compute(uint64(dagSize), height, nonce, hash)
 
 	return mix, digest, nil

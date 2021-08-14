@@ -23,9 +23,9 @@ func defaultDir() string {
 		home = user.HomeDir
 	}
 	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "AppData", "Etchash")
+		return filepath.Join(home, "AppData", "PowCache")
 	}
-	return filepath.Join(home, ".etchash")
+	return filepath.Join(home, ".powcache")
 }
 
 func isLittleEndian() bool {

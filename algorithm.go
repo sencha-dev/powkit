@@ -166,7 +166,7 @@ func generateL1Cache(cache []uint32) []uint32 {
 
 // generateDatasetItem combines data from 256 pseudorandomly selected cache nodes,
 // and hashes that to compute a single dataset node.
-func generateDatasetItem(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []byte {
+func generateDatasetItem(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []byte {
 	// Calculate the number of theoretical rows (we use one buffer nonetheless)
 	rows := uint32(len(cache) / hashWords)
 
@@ -177,7 +177,7 @@ func generateDatasetItem(cache []uint32, index uint32, keccak512 hasher, dataset
 	for i := 1; i < hashWords; i++ {
 		binary.LittleEndian.PutUint32(mix[i*4:], cache[(index%rows)*hashWords+uint32(i)])
 	}
-	keccak512(mix, mix)
+	keccak512Hasher(mix, mix)
 
 	// Convert the mix to uint32s to avoid constant bit shifting
 	intMix := make([]uint32, hashWords)
@@ -193,13 +193,13 @@ func generateDatasetItem(cache []uint32, index uint32, keccak512 hasher, dataset
 	for i, val := range intMix {
 		binary.LittleEndian.PutUint32(mix[i*4:], val)
 	}
-	keccak512(mix, mix)
+	keccak512Hasher(mix, mix)
 	return mix
 }
 
-func generateDatasetItem512(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
+func generateDatasetItem512(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords)
-	item := generateDatasetItem(cache, index, keccak512, datasetParents)
+	item := generateDatasetItem(cache, index, keccak512Hasher, datasetParents)
 
 	for i := 0; i < hashWords; i++ {
 		data[i] = binary.LittleEndian.Uint32(item[i*4:])
@@ -208,10 +208,10 @@ func generateDatasetItem512(cache []uint32, index uint32, keccak512 hasher, data
 	return data
 }
 
-func generateDatasetItem1024(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
+func generateDatasetItem1024(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords*2)
 	for n := 0; n < 2; n++ {
-		item := generateDatasetItem(cache, index*2+uint32(n), keccak512, datasetParents)
+		item := generateDatasetItem(cache, index*2+uint32(n), keccak512Hasher, datasetParents)
 
 		for i := 0; i < hashWords; i++ {
 			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4:])
@@ -221,10 +221,10 @@ func generateDatasetItem1024(cache []uint32, index uint32, keccak512 hasher, dat
 	return data
 }
 
-func generateDatasetItem2048(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []uint32 {
+func generateDatasetItem2048(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords*4)
 	for n := 0; n < 4; n++ {
-		item := generateDatasetItem(cache, index*4+uint32(n), keccak512, datasetParents)
+		item := generateDatasetItem(cache, index*4+uint32(n), keccak512Hasher, datasetParents)
 
 		for i := 0; i < hashWords; i++ {
 			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4 : i*4+4])
@@ -259,7 +259,7 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 			defer pend.Done()
 
 			// Create a hasher to reuse between invocations
-			keccak512 := NewKeccak512Hasher()
+			keccak512Hasher := NewKeccak512Hasher()
 
 			// Calculate the data segment this thread should generate
 			batch := (size + hashBytes*uint64(threads) - 1) / (hashBytes * uint64(threads))
@@ -271,7 +271,7 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 			// Calculate the dataset segment
 			percent := uint32(size / hashBytes / 100)
 			for index := first; index < limit; index++ {
-				item := generateDatasetItem(cache, uint32(index), keccak512, datasetParents)
+				item := generateDatasetItem(cache, uint32(index), keccak512Hasher, datasetParents)
 				if swapped {
 					swap(item)
 				}
