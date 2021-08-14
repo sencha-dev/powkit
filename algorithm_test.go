@@ -1,7 +1,6 @@
 package pow
 
 import (
-	"bytes"
 	"encoding/binary"
 	"reflect"
 	"testing"
