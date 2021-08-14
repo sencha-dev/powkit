@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/edsrzf/mmap-go"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 type PowFunc func(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte)
@@ -48,7 +47,6 @@ func (c *cache) generate(dir string, limit int, lock bool, test bool) {
 			endian = ".be"
 		}
 		path := filepath.Join(dir, fmt.Sprintf("cache-R%d-%x%s", algorithmRevision, seed[:8], endian))
-		logger := log.New("epoch", c.epoch)
 
 		// We're about to mmap the file, ensure that the mapping is cleaned up when the
 		// cache becomes unused.
@@ -58,19 +56,16 @@ func (c *cache) generate(dir string, limit int, lock bool, test bool) {
 		var err error
 		c.dump, c.mmap, c.cache, err = memoryMap(path, lock)
 		if err == nil {
-			logger.Debug("Loaded old etchash cache from disk")
 			return
 		}
-		logger.Debug("Failed to load old etchash cache", "err", err)
 
 		// No usable previous cache available, create a new cache file to fill
 		c.dump, c.mmap, c.cache, err = memoryMapAndGenerate(path, size, lock, func(buffer []uint32) { generateCache(buffer, c.epoch, c.epochLength, seed) })
 		if err != nil {
-			logger.Error("Failed to generate mapped etchash cache", "err", err)
-
 			c.cache = make([]uint32, size/4)
 			generateCache(c.cache, c.epoch, c.epochLength, seed)
 		}
+
 		// Iterate over all previous instances and delete old ones
 		for ep := int(c.epoch) - limit; ep >= 0; ep-- {
 			seed := seedHash(uint64(ep)*c.epochLength+1, c.epochLength)

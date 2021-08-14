@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"math/big"
 	"testing"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestVerifyETH(t *testing.T) {
@@ -16,7 +14,7 @@ func TestVerifyETH(t *testing.T) {
 	}
 
 	difficulty := big.NewInt(8_726_282_760)
-	if difficulty.Cmp(common.Big0) == 0 {
+	if difficulty.Cmp(big.NewInt(0)) == 0 {
 		t.Errorf("invalid block difficulty")
 		return
 	}
@@ -36,7 +34,7 @@ func TestVerifyETH(t *testing.T) {
 	}
 
 	target := new(big.Int).Div(maxUint256, difficulty)
-	if common.BytesToHash(actualDigest).Big().Cmp(target) > 0 {
+	if new(big.Int).SetBytes(actualDigest).Cmp(target) > 0 {
 		t.Errorf("verify: digest does not meet target difficulty")
 	}
 }

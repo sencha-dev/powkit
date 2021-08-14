@@ -2,8 +2,6 @@ package pow
 
 import (
 	"encoding/binary"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // hashimoto aggregates data from the full dataset in order to produce our final
@@ -41,7 +39,7 @@ func hashimoto(hash []byte, nonce uint64, size uint64, lookup func(index uint32)
 	}
 	mix = mix[:len(mix)/4]
 
-	digest := make([]byte, common.HashLength)
+	digest := make([]byte, 32)
 	for i, val := range mix {
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}

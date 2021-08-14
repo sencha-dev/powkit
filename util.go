@@ -62,6 +62,21 @@ func MustDecodeHex(inp string) []byte {
 	return out
 }
 
+/* Bit Utils */
+
+// taken from github.com/ethereum/go-ethereum
+
+func XORBytes(dst, a, b []byte) int {
+	n := len(a)
+	if len(b) < n {
+		n = len(b)
+	}
+	for i := 0; i < n; i++ {
+		dst[i] = a[i] ^ b[i]
+	}
+	return n
+}
+
 /* Math utils */
 
 func minUint32(a, b uint32) uint32 {

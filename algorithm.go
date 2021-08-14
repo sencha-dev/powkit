@@ -23,12 +23,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
-	"time"
 	"unsafe"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/bitutil"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 // seedHash is the seed to use for generating a verification cache and the mining
@@ -98,19 +93,6 @@ func calcDatasetSize(epoch uint64) uint64 {
 // set of 524288 64-byte values.
 // This method places the result into dest in machine byte order.
 func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte) {
-	// Print some debug logs to allow analysis on low end devices
-	logger := log.New("epoch", epoch)
-
-	start := time.Now()
-	defer func() {
-		elapsed := time.Since(start)
-
-		logFn := logger.Debug
-		if elapsed > 3*time.Second {
-			logFn = logger.Info
-		}
-		logFn("Generated ethash verification cache", "epochLength", epochLength, "elapsed", common.PrettyDuration(elapsed))
-	}()
 	// Convert our destination slice to a byte buffer
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
 	header.Len *= 4
@@ -132,8 +114,6 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 			select {
 			case <-done:
 				return
-			case <-time.After(3 * time.Second):
-				logger.Info("Generating ethash verification cache", "epochLength", epochLength, "percentage", atomic.LoadUint32(&progress)*100/uint32(rows)/4, "elapsed", common.PrettyDuration(time.Since(start)))
 			}
 		}
 	}()
@@ -156,7 +136,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 				dstOff = j * hashBytes
 				xorOff = (binary.LittleEndian.Uint32(cache[dstOff:]) % uint32(rows)) * hashBytes
 			)
-			bitutil.XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
+			XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
 			keccak512Hasher(cache[dstOff:], temp)
 
 			atomic.AddUint32(&progress, 1)
@@ -257,20 +237,6 @@ func generateDatasetItem2048(cache []uint32, index uint32, keccak512 hasher, dat
 // generateDataset generates the entire ethash dataset for mining.
 // This method places the result into dest in machine byte order.
 func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []uint32, datasetParents uint32) {
-	// Print some debug logs to allow analysis on low end devices
-	logger := log.New("epoch", epoch)
-
-	start := time.Now()
-	defer func() {
-		elapsed := time.Since(start)
-
-		logFn := logger.Debug
-		if elapsed > 3*time.Second {
-			logFn = logger.Info
-		}
-		logFn("Generated ethash verification cache", "epochLength", epochLength, "elapsed", common.PrettyDuration(elapsed))
-	}()
-
 	// Figure out whether the bytes need to be swapped for the machine
 	swapped := !isLittleEndian()
 
@@ -312,7 +278,6 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 				copy(dataset[index*hashBytes:], item)
 
 				if status := atomic.AddUint32(&progress, 1); status%percent == 0 {
-					logger.Info("Generating DAG in progress", "epochLength", epochLength, "percentage", uint64(status*100)/(size/hashBytes), "elapsed", common.PrettyDuration(time.Since(start)))
 				}
 			}
 		}(i)
