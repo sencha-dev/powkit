@@ -10,7 +10,7 @@ var (
 
 const (
 	algorithmRevision = 23
-	progpowRevision = "0.9.4"
+	progpowRevision   = "0.9.4"
 
 	// size constants
 	datasetInitBytes    = 1 << 30 // Bytes in dataset at genesis
@@ -24,8 +24,8 @@ const (
 	hashWords           = 16      // Number of 32 bit ints in a hash
 
 	// dag constants
-	datasetParentsETH = 256 // Number of parents of each dataset element for ETH
-	datasetParentsRVN = 512 // Number of parents of each dataset element for RVN
+	datasetParentsETH = 256  // Number of parents of each dataset element for ETH
+	datasetParentsRVN = 512  // Number of parents of each dataset element for RVN
 	cacheRounds       = 3    // Number of rounds in cache production
 	loopAccesses      = 64   // Number of accesses in hashimoto loop
 	maxEpoch          = 2048 // Max Epoch for included tables
@@ -39,15 +39,17 @@ const (
 	datasetsInMem              = 1
 	datasetsOnDisk             = 2
 	datasetsLockMmap           = false
-	
+
 	// progpow constants
-	periodLength       uint64 = 3
-	numRegs            uint32 = 32
-	numLanes           uint32 = 16
+	periodLength      uint64 = 3
+	numRegs           uint32 = 32
+	numLanes          uint32 = 16
 	numCacheAccesses  int    = 11
 	numMathOperations int    = 18
+	dagLoads          int    = 4
+	cntDag            int    = 64
 	l1CacheSize       uint32 = 16 * 1024
-	l1CacheNumItems  uint32 = l1CacheSize / 4
+	l1CacheNumItems   uint32 = l1CacheSize / 4
 )
 
 var ravencoinKawpow [15]uint32 = [15]uint32{
@@ -67,7 +69,6 @@ var ravencoinKawpow [15]uint32 = [15]uint32{
 	0x0000004F, //O
 	0x00000057, //W
 }
-
 
 // datasetSizes is a lookup table for the ethash dataset size for the first 2048
 // epochs (i.e. 61440000 blocks).

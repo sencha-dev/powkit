@@ -1,7 +1,5 @@
 # Go PoW
 
-**note: ravencoin is still not yet functional**
-
 This is a library designed for Proof of Work validation
 for chains that require a DAG - generally this refers
 to Ethash or ProgPOW chains. Currently `ethereum`, 
@@ -31,8 +29,9 @@ the ProgPOW full DAG implementation.
 
 # Todos
 
-- [ ] Fix the Ravencoin algorithm to function properly
+- [X] Fix the Ravencoin algorithm to function properly
 - [ ] Handle the L1 cache in ProgPOW more elegantly (memory map if needed)
+- [ ] Clean up Ravencoin generally to remove the hacky solutions currently implemented 
 - [ ] Utility functions for difficulty validation
 - [ ] More extensive testing for `ETH`, `ETC`, and `RVN`
 - [ ] Implement minimum block heights

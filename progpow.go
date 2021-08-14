@@ -2,6 +2,18 @@ package pow
 
 type MixArray [numLanes][numRegs]uint32
 
+func (m *MixArray) Copy() MixArray {
+	var newMix MixArray
+
+	for i, v1 := range m {
+		for j, v2 := range v1 {
+			newMix[i][j] = v2
+		}
+	}
+
+	return newMix
+}
+
 type MixRngState struct {
 	SrcCounter uint32
 	DstCounter uint32
@@ -10,17 +22,19 @@ type MixRngState struct {
 	Rng        *Kiss99
 }
 
-func (s *MixRngState) nextDst() uint32 {
-	s.DstCounter++
-	return s.DstSeq[s.DstCounter%numRegs]
+func (s MixRngState) nextDst() uint32 {
+	val := s.DstSeq[s.DstCounter%numRegs]
+
+	return val
 }
 
-func (s *MixRngState) nextSrc() uint32 {
-	s.SrcCounter++
-	return s.SrcSeq[s.SrcCounter%numRegs]
+func (s MixRngState) nextSrc() uint32 {
+	val := s.SrcSeq[s.SrcCounter%numRegs]
+
+	return val
 }
 
-func initMixRngState(seed uint64) *MixRngState {
+func initMixRngState(seed uint64) MixRngState {
 	var z, w, jsr, jcong uint32
 
 	z = fnv1a(FNV_OFFSET_BASIS, uint32(seed))
@@ -47,7 +61,7 @@ func initMixRngState(seed uint64) *MixRngState {
 		srcSeq[i-1], srcSeq[srcInd] = srcSeq[srcInd], srcSeq[i-1]
 	}
 
-	return &MixRngState{0, 0, srcSeq, dstSeq, rng}
+	return MixRngState{0, 0, srcSeq, dstSeq, rng}
 }
 
 type Kiss99 struct {
@@ -74,9 +88,9 @@ func (k *Kiss99) Next() uint32 {
 	return (((k.z << 16) + k.w) ^ k.jcong) + k.jsr
 }
 
-func initMix(seed uint64) MixArray {
-	z := fnv1a(FNV_OFFSET_BASIS, uint32(seed))
-	w := fnv1a(z, uint32(seed>>32))
+func initMix(seed [2]uint32) MixArray {
+	z := fnv1a(FNV_OFFSET_BASIS, uint32(seed[0]))
+	w := fnv1a(z, uint32(seed[1]))
 
 	var mix MixArray
 	for l := range mix {
@@ -93,8 +107,9 @@ func initMix(seed uint64) MixArray {
 	return mix
 }
 
-func round(l1 []uint32, r uint32, mix MixArray, state *MixRngState, lookup func(index uint32) []uint32) MixArray {
-	numItems := uint32(l1CacheNumItems / 2)
+func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64, lookup func(index uint32) []uint32) MixArray {
+	state := initMixRngState(seed)
+	numItems := uint32(datasetSize / (2 * 128))
 	itemIndex := mix[r%numLanes][0] % numItems
 
 	item := lookup(itemIndex)
@@ -103,9 +118,12 @@ func round(l1 []uint32, r uint32, mix MixArray, state *MixRngState, lookup func(
 	maxOperations := max(numCacheAccesses, numMathOperations)
 
 	for i := 0; i < maxOperations; i++ {
+
 		if i < numCacheAccesses {
 			src := state.nextSrc()
+			state.SrcCounter++
 			dst := state.nextDst()
+			state.DstCounter++
 			sel := state.Rng.Next()
 
 			for l := 0; l < int(numLanes); l++ {
@@ -124,6 +142,7 @@ func round(l1 []uint32, r uint32, mix MixArray, state *MixRngState, lookup func(
 
 			sel1 := state.Rng.Next()
 			dst := state.nextDst()
+			state.DstCounter++
 			sel2 := state.Rng.Next()
 
 			for l := 0; l < int(numLanes); l++ {
@@ -141,6 +160,7 @@ func round(l1 []uint32, r uint32, mix MixArray, state *MixRngState, lookup func(
 			dsts[i] = 0
 		} else {
 			dsts[i] = state.nextDst()
+			state.DstCounter++
 		}
 
 		sels[i] = state.Rng.Next()
@@ -157,13 +177,15 @@ func round(l1 []uint32, r uint32, mix MixArray, state *MixRngState, lookup func(
 	return mix
 }
 
-func hashMix(l1 []uint32, height uint64, seed uint64, lookup func(index uint32) []uint32) []byte {
+func hashMix(l1 []uint32, height uint64, seed [2]uint32, lookup func(index uint32) []uint32) []byte {
 	mix := initMix(seed)
-	number := height / periodLength
-	state := initMixRngState(number)
 
-	for i := 0; i < 64; i++ {
-		mix = round(l1, uint32(i), mix, state, lookup)
+	number := height / periodLength
+	epoch := calcEpoch(height, 7500)
+	datasetSize := datasetSize(epoch)
+
+	for i := 0; i < cntDag; i++ {
+		mix = round(l1, datasetSize, uint32(i), mix, number, lookup)
 	}
 
 	var laneHash [numLanes]uint32
@@ -175,13 +197,14 @@ func hashMix(l1 []uint32, height uint64, seed uint64, lookup func(index uint32) 
 		}
 	}
 
-	mixHash := make([]uint32, 8)
-	for i := 0; i < 8; i++ {
+	numWords := 8
+	mixHash := make([]uint32, numWords)
+	for i := 0; i < numWords; i++ {
 		mixHash[i] = FNV_OFFSET_BASIS
 	}
 
 	for l := 0; l < int(numLanes); l++ {
-		mixHash[l%8] = fnv1a(mixHash[l%8], laneHash[l])
+		mixHash[l%numWords] = fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
 	return uint32Array2ByteArray(mixHash)

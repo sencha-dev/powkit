@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func TestEthVerify(t *testing.T) {
+func TestVerifyETH(t *testing.T) {
 	hasher, err := NewLightDag("ETH")
 	if err != nil {
 		t.Errorf("%v", err)

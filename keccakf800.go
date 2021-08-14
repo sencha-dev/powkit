@@ -1,4 +1,4 @@
-/* 
+/*
 ported from
 github.com/traysi/kawpow-light-verifier/blob/master/ethash/keccakf800.c
 */

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -796,19 +795,19 @@ func TestMixhashRVN(t *testing.T) {
 
 	const height uint64 = 1881757
 	const nonce uint64 = 96461238819045
-	headerHash, err := hex.DecodeString("362d9f2b3b3e27aa44acfbf4d95188fffb3188bdf16c5ff4900caabbdb6d0cc0")
+	headerHash, err := hex.DecodeString("cf63e993ca10d7b6667cc6de7c896a6f32ffe49a3916ece271744030805489a3")
 	if err != nil {
 		t.Errorf("%v", err)
 		return
 	}
 
-	expectedMix, err := hex.DecodeString("2dc9682468d1b5aef40f25315bd6d762c62e652f143ab755e1cf8f308c9811a5")
+	expectedMix, err := hex.DecodeString("76772038fdd6ed503752e29933d346f05e83dcbdf1939e59a45477dc3d520770")
 	if err != nil {
 		t.Errorf("%v", err)
 		return
 	}
 
-	expectedDigest, err := hex.DecodeString("00000000000018b88e639d26ed28718117cbcc0fadcda4b148ac43ccaef9bd5d")
+	expectedDigest, err := hex.DecodeString("000000000000a6861f21601535f488a96c3c88f0219ad2385771787d0564b679")
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -820,7 +819,7 @@ func TestMixhashRVN(t *testing.T) {
 		t.Errorf("mixhash: rvn does not match")
 	}
 
-	fmt.Println("mix", hex.EncodeToString(actualMix), hex.EncodeToString(expectedMix))
-	fmt.Println("digest", hex.EncodeToString(actualDigest), hex.EncodeToString(expectedDigest))
-
+	if bytes.Compare(expectedDigest, actualDigest) != 0 {
+		t.Errorf("digest: rvn does not match")
+	}
 }
