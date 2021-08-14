@@ -1,34 +1,45 @@
 package pow
 
-/*
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 )
 
-func TestHashKawpow(t *testing.T) {
-	expected := "000000000000386be5b84129bf96871a56316ebeec808d1365e84eb80982ee70"
-	mixHash, _ := hex.DecodeString("8c6e3d04f30e01e3aef14e5105017a5eb3c36cd37cff38b034b56f3ed6563d89")
-	headerHash, _ := hex.DecodeString("b49e79223af6dacef8855a37aaa1ad5add70d25c6bd3efa748f3edebf806384f")
-	const nonce uint64 = 0xeaf848284cbbf597
+func TestVerifyRVN(t *testing.T) {
+	hasher, err := NewLightDag("RVN")
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
 
-	actual, _ := hashKawpow(mixHash, headerHash, nonce)
+	const height uint64 = 1881757
+	const nonce uint64 = 96461238819045
+	headerHash, err := hex.DecodeString("cf63e993ca10d7b6667cc6de7c896a6f32ffe49a3916ece271744030805489a3")
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
 
-	if expected != hex.EncodeToString(actual) {
-		t.Errorf("failed hashKawpow test 1: %s does not match %s", hex.EncodeToString(actual), expected)
+	expectedMix, err := hex.DecodeString("76772038fdd6ed503752e29933d346f05e83dcbdf1939e59a45477dc3d520770")
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+
+	expectedDigest, err := hex.DecodeString("000000000000a6861f21601535f488a96c3c88f0219ad2385771787d0564b679")
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+
+	actualMix, actualDigest := hasher.Compute(headerHash, height, nonce)
+
+	if bytes.Compare(expectedMix, actualMix) != 0 {
+		t.Errorf("mixhash: rvn does not match")
+	}
+
+	if bytes.Compare(expectedDigest, actualDigest) != 0 {
+		t.Errorf("digest: rvn does not match")
 	}
 }
-
-func TestHashKawpow2(t *testing.T) {
-	expected := "00000000000008457bcad353be3cfee8d7e8a3652021b0fb80cebe6778b47a9a"
-	mixHash, _ := hex.DecodeString("49e1c27603d86e6be91300375dcf869f4b1c429ef115635c807d243853dffdf4")
-	headerHash, _ := hex.DecodeString("dce93eb126ccb5228641e8cdd3964c8bbcb9a513da14b2822b9d693c1de8404a")
-	const nonce uint64 = 0xa1d6b6cc8b1f8773
-
-	actual, _ := hashKawpow(mixHash, headerHash, nonce)
-
-	if expected != hex.EncodeToString(actual) {
-		t.Errorf("failed hashKawpow test 1: %s does not match %s", hex.EncodeToString(actual), expected)
-	}
-}
-*/

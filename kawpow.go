@@ -28,7 +28,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 		}
 	}
 
-	seedHead := uint64(state2[0])<<32 + uint64(state2[1])
+	seedHead := [2]uint32{state2[0], state2[1]}
 	mixHash := hashMix(l1, height, seedHead, lookup)
 
 	var state [25]uint32
@@ -60,20 +60,11 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 // hash and nonce.
 func kawpowLight(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte) {
 	keccak512Hasher := makeHasher(sha3.NewLegacyKeccak512())
-
 	lookup := func(index uint32) []uint32 {
 		return generateDatasetItem2048(cache, index, keccak512Hasher, datasetParentsRVN)
 	}
 
-	var l1 []uint32
-	for i := 0; i < int(l1CacheSize/32); i++ {
-		item := generateDatasetItem(cache, uint32(i), keccak512Hasher, 512)
-		data := make([]uint32, len(item)/4)
-		for i := 0; i < len(item)/4; i++ {
-			data[i] = binary.LittleEndian.Uint32(item[i*4:])
-		}
-		l1 = append(l1, data...)
-	}
+	l1 := generateL1Cache(cache)
 
 	return kawpow(l1, hash, height, nonce, lookup)
 }

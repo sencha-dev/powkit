@@ -165,6 +165,22 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	}
 }
 
+func generateL1Cache(cache []uint32) []uint32 {
+	keccak512Hasher := makeHasher(sha3.NewLegacyKeccak512())
+	l1CacheItems := (l1CacheSize / 256)
+	l1 := make([]uint32, l1CacheItems*4*hashWords)
+
+	for i := 0; i < 256; i++ {
+		item := generateDatasetItem(cache, uint32(i), keccak512Hasher, 512)
+
+		for k := 0; k < len(item)/4; k++ {
+			l1[i*16+k] = binary.LittleEndian.Uint32(item[k*4 : k*4+4])
+		}
+	}
+
+	return l1
+}
+
 // generateDatasetItem combines data from 256 pseudorandomly selected cache nodes,
 // and hashes that to compute a single dataset node.
 func generateDatasetItem(cache []uint32, index uint32, keccak512 hasher, datasetParents uint32) []byte {
@@ -223,7 +239,7 @@ func generateDatasetItem2048(cache []uint32, index uint32, keccak512 hasher, dat
 
 		data := make([]uint32, len(rawData)/4)
 		for i := 0; i < len(data); i++ {
-			data[i] = binary.LittleEndian.Uint32(rawData[i*4:])
+			data[i] = binary.LittleEndian.Uint32(rawData[i*4 : i*4+4])
 		}
 
 		fullData = append(fullData, data...)

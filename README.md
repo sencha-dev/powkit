@@ -1,7 +1,5 @@
 # Go PoW
 
-**note: ravencoin is still not yet functional**
-
 This is a library designed for Proof of Work validation
 for chains that require a DAG - generally this refers
 to Ethash or ProgPOW chains. Currently `ethereum`, 

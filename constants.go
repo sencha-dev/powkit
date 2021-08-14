@@ -46,6 +46,8 @@ const (
 	numLanes          uint32 = 16
 	numCacheAccesses  int    = 11
 	numMathOperations int    = 18
+	dagLoads          int    = 4
+	cntDag            int    = 64
 	l1CacheSize       uint32 = 16 * 1024
 	l1CacheNumItems   uint32 = l1CacheSize / 4
 )
