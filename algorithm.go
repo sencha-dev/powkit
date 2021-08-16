@@ -22,7 +22,6 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"unsafe"
 )
 
@@ -103,20 +102,6 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	size := uint64(len(cache))
 	rows := int(size) / hashBytes
 
-	// Start a monitoring goroutine to report progress on low end devices
-	var progress uint32
-
-	done := make(chan struct{})
-	defer close(done)
-
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			}
-		}
-	}()
 	// Create a hasher to reuse between invocations
 	keccak512Hasher := NewKeccak512Hasher()
 
@@ -124,7 +109,6 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	keccak512Hasher(cache, seed)
 	for offset := uint64(hashBytes); offset < size; offset += hashBytes {
 		keccak512Hasher(cache[offset:], cache[offset-hashBytes:offset])
-		atomic.AddUint32(&progress, 1)
 	}
 	// Use a low-round version of randmemohash
 	temp := make([]byte, hashBytes)
@@ -138,8 +122,6 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 			)
 			XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
 			keccak512Hasher(cache[dstOff:], temp)
-
-			atomic.AddUint32(&progress, 1)
 		}
 	}
 	// Swap the byte order on big endian systems and return
@@ -253,7 +235,6 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 	var pend sync.WaitGroup
 	pend.Add(threads)
 
-	var progress uint32
 	for i := 0; i < threads; i++ {
 		go func(id int) {
 			defer pend.Done()
@@ -269,16 +250,12 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 				limit = size / hashBytes
 			}
 			// Calculate the dataset segment
-			percent := uint32(size / hashBytes / 100)
 			for index := first; index < limit; index++ {
 				item := generateDatasetItem(cache, uint32(index), keccak512Hasher, datasetParents)
 				if swapped {
 					swap(item)
 				}
 				copy(dataset[index*hashBytes:], item)
-
-				if status := atomic.AddUint32(&progress, 1); status%percent == 0 {
-				}
 			}
 		}(i)
 	}

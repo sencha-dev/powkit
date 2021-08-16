@@ -2,6 +2,7 @@ package pow
 
 import (
 	"encoding/binary"
+	"runtime"
 )
 
 func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
@@ -46,13 +47,19 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 // hashimotoLight aggregates data from the full dataset (using only a small
 // in-memory cache) in order to produce our final value for a particular header
 // hash and nonce.
-func kawpowLight(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte) {
+func (dag *LightDag) kawpowLight(height, nonce uint64, hash []byte) ([]byte, []byte) {
+	epoch := calcEpoch(height, dag.EpochLength)
+	cache := dag.getCache(epoch)
+
 	keccak512Hasher := NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return generateDatasetItem2048(cache, index, keccak512Hasher, datasetParentsRVN)
+		return generateDatasetItem2048(cache.cache, index, keccak512Hasher, dag.DatasetParents)
 	}
 
-	l1 := generateL1Cache(cache)
+	l1 := generateL1Cache(cache.cache)
 
-	return kawpow(l1, hash, height, nonce, lookup)
+	mix, digest := kawpow(l1, hash, height, nonce, lookup)
+	runtime.KeepAlive(cache)
+
+	return mix, digest
 }

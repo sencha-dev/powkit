@@ -694,7 +694,7 @@ func TestDatasetGenerationETH(t *testing.T) {
 		generateCache(cache, tt.epoch, epochLengthETH, seedHash(tt.epoch*epochLengthETH+1, epochLengthETH))
 
 		dataset := make([]uint32, tt.datasetSize/4)
-		generateDataset(dataset, tt.epoch, epochLengthETH, cache, datasetParentsETH)
+		generateDataset(dataset, tt.epoch, epochLengthETH, cache, 256)
 
 		want := make([]uint32, tt.datasetSize/4)
 		prepare(want, tt.dataset)
@@ -768,8 +768,8 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 		generateCache(cache, tt.epoch, 7500, seed)
 
 		keccak512Hasher := NewKeccak512Hasher()
-		item1 := generateDatasetItem(cache, tt.index, keccak512Hasher, datasetParentsRVN)
-		item2 := generateDatasetItem(cache, tt.index+1, keccak512Hasher, datasetParentsRVN)
+		item1 := generateDatasetItem(cache, tt.index, keccak512Hasher, 512)
+		item2 := generateDatasetItem(cache, tt.index+1, keccak512Hasher, 512)
 
 		if !reflect.DeepEqual(item1, tt.hash1) {
 			t.Errorf("cache %d: content mismatch: have %x, want %x", i, item1, tt.hash1)

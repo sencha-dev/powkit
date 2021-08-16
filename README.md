@@ -32,7 +32,7 @@ the ProgPOW full DAG implementation.
 - [X] Fix the Ravencoin algorithm to function properly
 - [X] Implement minimum block heights
 - [X] Remove ethereum dependency
-- [ ] Handle the L1 cache in ProgPOW more elegantly (memory map if needed)
+- [ ] Memory map L1 cache for RVN to remove 30ms on `Compute`
 - [ ] Clean up Ravencoin generally to remove the hacky solutions currently implemented 
 - [ ] Utility functions for difficulty validation
 - [ ] More extensive testing for `ETH`, `ETC`, and `RVN`

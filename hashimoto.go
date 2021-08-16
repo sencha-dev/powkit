@@ -2,6 +2,7 @@ package pow
 
 import (
 	"encoding/binary"
+	"runtime"
 )
 
 // hashimoto aggregates data from the full dataset in order to produce our final
@@ -26,7 +27,7 @@ func hashimoto(hash []byte, nonce uint64, size uint64, lookup func(index uint32)
 	// Mix in random dataset nodes
 	temp := make([]uint32, len(mix))
 
-	for i := 0; i < loopAccesses; i++ {
+	for i := 0; i < hashimotoRounds; i++ {
 		parent := fnv1(uint32(i)^seedHead, mix[i%len(mix)]) % rows
 		for j := uint32(0); j < mixBytes/hashBytes; j++ {
 			copy(temp[j*hashWords:], lookup(2*parent+j))
@@ -49,11 +50,18 @@ func hashimoto(hash []byte, nonce uint64, size uint64, lookup func(index uint32)
 // hashimotoLight aggregates data from the full dataset (using only a small
 // in-memory cache) in order to produce our final value for a particular header
 // hash and nonce.
-func hashimotoLight(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte) {
+func (dag *LightDag) hashimotoLight(height, nonce uint64, hash []byte) ([]byte, []byte) {
+	epoch := calcEpoch(height, dag.EpochLength)
+	dagSize := datasetSize(epoch)
+	cache := dag.getCache(epoch)
+
 	keccak512Hasher := NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return generateDatasetItem512(cache, index, keccak512Hasher, datasetParentsETH)
+		return generateDatasetItem512(cache.cache, index, keccak512Hasher, dag.DatasetParents)
 	}
 
-	return hashimoto(hash, nonce, size, lookup)
+	mix, digest := hashimoto(hash, nonce, dagSize, lookup)
+	runtime.KeepAlive(cache)
+
+	return mix, digest
 }

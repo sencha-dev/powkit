@@ -22,31 +22,25 @@ const (
 	hashWords          = 16      // Number of 32 bit ints in a hash
 
 	// dag constants
-	datasetParentsETH = 256  // Number of parents of each dataset element for ETH
-	datasetParentsRVN = 512  // Number of parents of each dataset element for RVN
-	cacheRounds       = 3    // Number of rounds in cache production
-	loopAccesses      = 64   // Number of accesses in hashimoto loop
-	maxEpoch          = 2048 // Max Epoch for included tables
+	cacheRounds = 3    // Number of rounds in cache production
+	maxEpoch    = 2048 // Max Epoch for included tables
 
-	// cache constants
-	cacheSizeForTesting uint64 = 1024
-	dagSizeForTesting   uint64 = 1024 * 32
-	cachesInMem                = 2
-	cachesOnDisk               = 3
-	cachesLockMmap             = false
-	datasetsInMem              = 1
-	datasetsOnDisk             = 2
-	datasetsLockMmap           = false
+	// mmap constants
+	cachesOnDisk   = 3
+	cachesLockMmap = false
 
-	// progpow constants
+	// hashimoto constants
+	hashimotoRounds = 64 // Number of accesses in hashimoto loop
+
+	// kawpow constants
 	periodLength      uint64 = 3
 	numRegs           uint32 = 32
 	numLanes          uint32 = 16
 	numCacheAccesses  int    = 11
 	numMathOperations int    = 18
 	dagLoads          int    = 4
-	cntDag            int    = 64
-	l1CacheSize       uint32 = 16 * 1024
+	kawpowRounds      int    = 64
+	l1CacheSize       uint32 = 4 * 4096
 	l1CacheNumItems   uint32 = l1CacheSize / 4
 )
 

@@ -182,7 +182,7 @@ func hashMix(l1 []uint32, height uint64, seed [2]uint32, lookup func(index uint3
 	epoch := calcEpoch(height, 7500)
 	datasetSize := datasetSize(epoch)
 
-	for i := 0; i < cntDag; i++ {
+	for i := 0; i < kawpowRounds; i++ {
 		mix = round(l1, datasetSize, uint32(i), mix, number, lookup)
 	}
 

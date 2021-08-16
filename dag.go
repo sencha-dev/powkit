@@ -12,8 +12,6 @@ import (
 	"github.com/edsrzf/mmap-go"
 )
 
-type PowFunc func(size, height, nonce uint64, cache []uint32, hash []byte) ([]byte, []byte)
-
 type cache struct {
 	epoch       uint64
 	dump        *os.File
@@ -22,7 +20,6 @@ type cache struct {
 	once        sync.Once
 	used        time.Time
 	epochLength uint64
-	powFunc     PowFunc
 }
 
 // generate ensures that the cache content is generated before use.
@@ -80,24 +77,15 @@ func (c *cache) finalizer() {
 	}
 }
 
-func (c *cache) compute(dagSize, height, nonce uint64, hash []byte) ([]byte, []byte) {
-	digest, result := c.powFunc(dagSize, height, nonce, c.cache, hash)
-	// Caches are unmapped in a finalizer. Ensure that the cache stays alive
-	// until after the call to hashimotoLight so it's not unmapped while being used.
-	runtime.KeepAlive(c)
-	return digest, result
-}
-
 type LightDag struct {
 	mu     sync.Mutex        // Protects the per-epoch map of verification caches
 	caches map[uint64]*cache // Currently maintained verification caches
 	future *cache            // Pre-generated cache for the estimated future DAG
 
-	PowFunc        PowFunc
 	Chain          string
 	Algorithm      string
 	NumCaches      int // Maximum number of caches to keep before eviction (only init, don't modify)
-	DatasetParents int
+	DatasetParents uint32
 	EpochLength    uint64
 	MinimumHeight  uint64
 }
@@ -111,7 +99,6 @@ func NewLightDag(chain string) (*LightDag, error) {
 		dag = &LightDag{
 			Chain:          "ETH",
 			Algorithm:      "ethash",
-			PowFunc:        hashimotoLight,
 			EpochLength:    30000,
 			DatasetParents: 256,
 			NumCaches:      cachesOnDisk,
@@ -121,7 +108,6 @@ func NewLightDag(chain string) (*LightDag, error) {
 		dag = &LightDag{
 			Chain:          "ETC",
 			Algorithm:      "etchash",
-			PowFunc:        hashimotoLight,
 			EpochLength:    60000,
 			DatasetParents: 256,
 			NumCaches:      cachesOnDisk,
@@ -131,7 +117,6 @@ func NewLightDag(chain string) (*LightDag, error) {
 		dag = &LightDag{
 			Chain:          "RVN",
 			Algorithm:      "kawpow",
-			PowFunc:        kawpowLight,
 			EpochLength:    7500,
 			DatasetParents: 512,
 			NumCaches:      cachesOnDisk,
@@ -172,14 +157,14 @@ func (dag *LightDag) getCache(epoch uint64) *cache {
 			c, dag.future = dag.future, nil
 		} else {
 			// DEBUG: fmt.Sprintf("creating new dag for epoch %d", epoch)
-			c = &cache{epoch: epoch, epochLength: dag.EpochLength, powFunc: dag.PowFunc}
+			c = &cache{epoch: epoch, epochLength: dag.EpochLength}
 		}
 
 		dag.caches[epoch] = c
 		nextEpoch := epoch + 1
 		if dag.future == nil || dag.future.epoch <= epoch {
 			// DEBUG: fmt.Sprintf("pre-generating dag for epoch %d", nextEpoch)
-			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength, powFunc: dag.PowFunc}
+			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength}
 			go dag.future.generate(defaultDir(), dag.NumCaches, cachesLockMmap)
 		}
 	}
@@ -197,11 +182,15 @@ func (dag *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte,
 		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, dag.MinimumHeight, dag.Chain)
 	}
 
-	epoch := calcEpoch(height, dag.EpochLength)
-	dagSize := datasetSize(epoch)
-
-	cache := dag.getCache(epoch)
-	mix, digest := cache.compute(uint64(dagSize), height, nonce, hash)
+	var mix, digest []byte
+	switch dag.Chain {
+	case "ETH", "ETC":
+		mix, digest = dag.hashimotoLight(height, nonce, hash)
+	case "RVN":
+		mix, digest = dag.kawpowLight(height, nonce, hash)
+	default:
+		return nil, nil, fmt.Errorf("unsupported chain %s", dag.Chain)
+	}
 
 	return mix, digest, nil
 }
