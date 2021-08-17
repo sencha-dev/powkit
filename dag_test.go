@@ -15,10 +15,22 @@ func TestComputeETH(t *testing.T) {
 		digest []byte
 	}{
 		{
+			height: 10000000,
+			nonce: 0x2f6923f80426f157,
+			hash: MustDecodeHex("0x69e71ffd37268b6cf7096cdd917c2c175eaaee8eb7afed4b5cf8521b09024818"),
+			mix: MustDecodeHex("0x37fde31175fe180346444d15b4dfc6a9da3b2b41ee2298ceeccaf888b2d45df4"),
+		},
+		{
 			height: 12000000,
 			nonce: 0xb62c052c3d4a3866,
 			hash: MustDecodeHex("0x1940ee93bb48f1982b9fc546ae69ca9a59de4e55f9944900b3abf04436eb1ee1"),
 			mix: MustDecodeHex("0x114f16f97d044682678844ea69212d6764998107ccb698fc6ae4fd2d71a33104"),
+		},
+		{
+			height: 12500000,
+			nonce: 0xf2ff08440a19cae5,
+			hash: MustDecodeHex("0xd3c23efff082cc2ad40258c6a26da172f23ad9507fa95312a0d10d656630bf6a"),
+			mix: MustDecodeHex("0xdd18cd7f495c6084fe4ac49626ff06481a9b9e693e10fabaff7c3337cd309c79"),
 		},
 	}
 
