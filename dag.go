@@ -1,23 +1,23 @@
 package pow
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
-	"fmt"
 
 	"github.com/edsrzf/mmap-go"
 )
 
 type cache struct {
-	epoch       uint64
-	epochLength uint64
+	epoch           uint64
+	epochLength     uint64
 	seedEpochLength uint64
-	once        sync.Once
-	used        time.Time
+	once            sync.Once
+	used            time.Time
 
 	cacheDump *os.File
 	cacheMmap mmap.MMap
