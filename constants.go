@@ -40,7 +40,7 @@ const (
 	numMathOperations int    = 18
 	dagLoads          int    = 4
 	kawpowRounds      int    = 64
-	l1CacheSize       uint32 = 4 * 4096
+	l1CacheSize       uint32 = 4096 * 4
 	l1CacheNumItems   uint32 = l1CacheSize / 4
 )
 

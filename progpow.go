@@ -90,9 +90,9 @@ func (k *Kiss99) Next() uint32 {
 	return (((k.z << 16) + k.w) ^ k.jcong) + k.jsr
 }
 
-func initMix(seed [2]uint32) MixArray {
-	z := fnv1a(FNV_OFFSET_BASIS, uint32(seed[0]))
-	w := fnv1a(z, uint32(seed[1]))
+func initProgpowMix(seed uint64) MixArray {
+	z := fnv1a(FNV_OFFSET_BASIS, uint32(seed))
+	w := fnv1a(z, uint32(seed>>32))
 
 	var mix MixArray
 	for l := range mix {
@@ -109,7 +109,7 @@ func initMix(seed [2]uint32) MixArray {
 	return mix
 }
 
-func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64, lookup func(index uint32) []uint32) MixArray {
+func progpowRound(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64, lookup func(index uint32) []uint32) MixArray {
 	state := initMixRngState(seed)
 	numItems := uint32(datasetSize / (2 * 128))
 	itemIndex := mix[r%numLanes][0] % numItems
@@ -175,15 +175,15 @@ func round(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64,
 	return mix
 }
 
-func hashMix(l1 []uint32, height uint64, seed [2]uint32, lookup func(index uint32) []uint32) []byte {
-	mix := initMix(seed)
+func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index uint32) []uint32) []byte {
+	mix := initProgpowMix(seed)
 
 	number := height / periodLength
 	epoch := calcEpoch(height, 7500)
 	datasetSize := datasetSize(epoch)
 
 	for i := 0; i < kawpowRounds; i++ {
-		mix = round(l1, datasetSize, uint32(i), mix, number, lookup)
+		mix = progpowRound(l1, datasetSize, uint32(i), mix, number, lookup)
 	}
 
 	var laneHash [numLanes]uint32

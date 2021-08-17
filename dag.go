@@ -1,37 +1,48 @@
 package pow
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/edsrzf/mmap-go"
 )
 
 type cache struct {
 	epoch       uint64
-	dump        *os.File
-	mmap        mmap.MMap
-	cache       []uint32
+	epochLength uint64
+	seedEpochLength uint64
 	once        sync.Once
 	used        time.Time
-	epochLength uint64
+
+	cacheDump *os.File
+	cacheMmap mmap.MMap
+	cache     []uint32
+	l1Dump    *os.File
+	l1Mmap    mmap.MMap
+	l1        []uint32
 }
 
 // generate ensures that the cache content is generated before use.
-func (c *cache) generate(dir string, limit int, lock bool) {
+func (c *cache) generate(chain, dir string, limit int, lock bool, generateL1 bool) {
 	c.once.Do(func() {
 		size := cacheSize(c.epoch)
-		seed := seedHash(c.epoch*c.epochLength+1, c.epochLength)
+		seed := seedHash(c.epoch*c.epochLength+1, c.seedEpochLength)
 
 		// If we don't store anything on disk, generate and return.
 		if dir == "" {
 			c.cache = make([]uint32, size/4)
 			generateCache(c.cache, c.epoch, c.epochLength, seed)
+
+			if generateL1 {
+				c.l1 = make([]uint32, l1CacheNumItems)
+				generateL1Cache(c.l1, c.cache)
+			}
+
 			return
 		}
 		// Disk storage is needed, this will get fancy
@@ -39,7 +50,8 @@ func (c *cache) generate(dir string, limit int, lock bool) {
 		if !isLittleEndian() {
 			endian = ".be"
 		}
-		path := filepath.Join(dir, fmt.Sprintf("cache-R%d-%x%s", algorithmRevision, seed[:8], endian))
+		cachePath := filepath.Join(dir, fmt.Sprintf("cache-%s-R%d-%x%s", chain, algorithmRevision, seed[:8], endian))
+		l1Path := filepath.Join(dir, fmt.Sprintf("l1-%s-R%d-%x%s", chain, algorithmRevision, seed[:8], endian))
 
 		// We're about to mmap the file, ensure that the mapping is cleaned up when the
 		// cache becomes unused.
@@ -47,33 +59,57 @@ func (c *cache) generate(dir string, limit int, lock bool) {
 
 		// Try to load the file from disk and memory map it
 		var err error
-		c.dump, c.mmap, c.cache, err = memoryMap(path, lock)
-		if err == nil {
+		c.cacheDump, c.cacheMmap, c.cache, err = memoryMap(cachePath, lock)
+
+		needsCache := err != nil
+		needsL1 := generateL1
+
+		if generateL1 {
+			c.l1Dump, c.l1Mmap, c.l1, err = memoryMap(l1Path, lock)
+			needsL1 = err != nil
+		}
+
+		if !needsL1 && !needsCache {
 			return
 		}
 
 		// No usable previous cache available, create a new cache file to fill
-		c.dump, c.mmap, c.cache, err = memoryMapAndGenerate(path, size, lock, func(buffer []uint32) { generateCache(buffer, c.epoch, c.epochLength, seed) })
-		if err != nil {
-			c.cache = make([]uint32, size/4)
-			generateCache(c.cache, c.epoch, c.epochLength, seed)
+		if needsCache {
+			cacheGenerator := func(buffer []uint32) { generateCache(buffer, c.epoch, c.epochLength, seed) }
+			c.cacheDump, c.cacheMmap, c.cache, err = memoryMapAndGenerate(cachePath, size, lock, cacheGenerator)
+			if err != nil {
+				c.cache = make([]uint32, size/4)
+				generateCache(c.cache, c.epoch, c.epochLength, seed)
+			}
+		}
+
+		if needsL1 {
+			l1Generator := func(buffer []uint32) { generateL1Cache(buffer, c.cache) }
+			c.l1Dump, c.l1Mmap, c.l1, err = memoryMapAndGenerate(l1Path, uint64(l1CacheSize), lock, l1Generator)
+			if err != nil {
+				c.l1 = make([]uint32, l1CacheNumItems)
+				generateL1Cache(c.l1, c.cache)
+			}
+
 		}
 
 		// Iterate over all previous instances and delete old ones
 		for ep := int(c.epoch) - limit; ep >= 0; ep-- {
-			seed := seedHash(uint64(ep)*c.epochLength+1, c.epochLength)
-			path := filepath.Join(dir, fmt.Sprintf("cache-R%d-%x%s", algorithmRevision, seed[:8], endian))
-			os.Remove(path)
+			seed := seedHash(uint64(ep)*c.epochLength+1, c.seedEpochLength)
+			cachePath := filepath.Join(dir, fmt.Sprintf("cache-%s-R%d-%x%s", chain, algorithmRevision, seed[:8], endian))
+			l1Path := filepath.Join(dir, fmt.Sprintf("l1-%s-R%d-%x%s", chain, algorithmRevision, seed[:8], endian))
+			os.Remove(cachePath)
+			os.Remove(l1Path)
 		}
 	})
 }
 
 // finalizer unmaps the memory and closes the file.
 func (c *cache) finalizer() {
-	if c.mmap != nil {
-		c.mmap.Unmap()
-		c.dump.Close()
-		c.mmap, c.dump = nil, nil
+	if c.cacheMmap != nil {
+		c.cacheMmap.Unmap()
+		c.cacheDump.Close()
+		c.cacheMmap, c.cacheDump = nil, nil
 	}
 }
 
@@ -82,12 +118,14 @@ type LightDag struct {
 	caches map[uint64]*cache // Currently maintained verification caches
 	future *cache            // Pre-generated cache for the estimated future DAG
 
-	Chain          string
-	Algorithm      string
-	NumCaches      int // Maximum number of caches to keep before eviction (only init, don't modify)
-	DatasetParents uint32
-	EpochLength    uint64
-	MinimumHeight  uint64
+	Chain           string
+	Algorithm       string
+	NumCaches       int // Maximum number of caches to keep before eviction (only init, don't modify)
+	DatasetParents  uint32
+	EpochLength     uint64
+	SeedEpochLength uint64 // ETC uses 30000 for the seed epoch length but 60000 for the rest
+	MinimumHeight   uint64
+	NeedsL1         bool
 }
 
 func NewLightDag(chain string) (*LightDag, error) {
@@ -97,30 +135,36 @@ func NewLightDag(chain string) (*LightDag, error) {
 	switch chain {
 	case "ETH":
 		dag = &LightDag{
-			Chain:          "ETH",
-			Algorithm:      "ethash",
-			EpochLength:    30000,
-			DatasetParents: 256,
-			NumCaches:      cachesOnDisk,
-			MinimumHeight:  0,
+			Chain:           "ETH",
+			Algorithm:       "ethash",
+			EpochLength:     30000,
+			SeedEpochLength: 30000,
+			DatasetParents:  256,
+			NumCaches:       cachesOnDisk,
+			MinimumHeight:   0,
+			NeedsL1:         false,
 		}
 	case "ETC":
 		dag = &LightDag{
-			Chain:          "ETC",
-			Algorithm:      "etchash",
-			EpochLength:    60000,
-			DatasetParents: 256,
-			NumCaches:      cachesOnDisk,
-			MinimumHeight:  11700000,
+			Chain:           "ETC",
+			Algorithm:       "etchash",
+			EpochLength:     60000,
+			SeedEpochLength: 30000,
+			DatasetParents:  256,
+			NumCaches:       cachesOnDisk,
+			MinimumHeight:   11700000,
+			NeedsL1:         false,
 		}
 	case "RVN":
 		dag = &LightDag{
-			Chain:          "RVN",
-			Algorithm:      "kawpow",
-			EpochLength:    7500,
-			DatasetParents: 512,
-			NumCaches:      cachesOnDisk,
-			MinimumHeight:  1219736,
+			Chain:           "RVN",
+			Algorithm:       "kawpow",
+			EpochLength:     7500,
+			SeedEpochLength: 7500,
+			DatasetParents:  512,
+			NumCaches:       cachesOnDisk,
+			MinimumHeight:   1219736,
+			NeedsL1:         true,
 		}
 	default:
 		return nil, fmt.Errorf("%s is not supported", chain)
@@ -147,32 +191,28 @@ func (dag *LightDag) getCache(epoch uint64) *cache {
 					evict = cache
 				}
 			}
-			// DEBUG: fmt.Sprintf("evicting dag for epoch %d in favor of %d", evict.epoch, epoch)
 			delete(dag.caches, evict.epoch)
 		}
 
 		// use the pre generated dag if exists
 		if dag.future != nil && dag.future.epoch == epoch {
-			// DEBUG: fmt.Sprintf("using pre-generated dag for epoch %d", epoch)
 			c, dag.future = dag.future, nil
 		} else {
-			// DEBUG: fmt.Sprintf("creating new dag for epoch %d", epoch)
-			c = &cache{epoch: epoch, epochLength: dag.EpochLength}
+			c = &cache{epoch: epoch, epochLength: dag.EpochLength, seedEpochLength: dag.SeedEpochLength}
 		}
 
 		dag.caches[epoch] = c
 		nextEpoch := epoch + 1
 		if dag.future == nil || dag.future.epoch <= epoch {
-			// DEBUG: fmt.Sprintf("pre-generating dag for epoch %d", nextEpoch)
-			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength}
-			go dag.future.generate(defaultDir(), dag.NumCaches, cachesLockMmap)
+			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength, seedEpochLength: dag.SeedEpochLength}
+			go dag.future.generate(dag.Chain, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
 		}
 	}
 
 	c.used = time.Now()
 	dag.mu.Unlock()
 
-	c.generate(defaultDir(), dag.NumCaches, cachesLockMmap)
+	c.generate(dag.Chain, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
 
 	return c
 }

@@ -110,6 +110,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	for offset := uint64(hashBytes); offset < size; offset += hashBytes {
 		keccak512Hasher(cache[offset:], cache[offset-hashBytes:offset])
 	}
+
 	// Use a low-round version of randmemohash
 	temp := make([]byte, hashBytes)
 
@@ -130,20 +131,27 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	}
 }
 
-func generateL1Cache(cache []uint32) []uint32 {
+func generateL1Cache(dest []uint32, cache []uint32) {
+	swapped := !isLittleEndian()
+
 	keccak512Hasher := NewKeccak512Hasher()
-	l1CacheItems := (l1CacheSize / 256)
-	l1 := make([]uint32, l1CacheItems*4*hashWords)
 
-	for i := 0; i < 256; i++ {
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
+	header.Len *= 4
+	header.Cap *= 4
+	l1 := *(*[]byte)(unsafe.Pointer(&header))
+
+	size := uint64(len(l1))
+	rows := int(size) / hashBytes
+
+	for i := 0; i < rows; i++ {
 		item := generateDatasetItem(cache, uint32(i), keccak512Hasher, 512)
-
-		for k := 0; k < len(item)/4; k++ {
-			l1[i*16+k] = binary.LittleEndian.Uint32(item[k*4 : k*4+4])
+		if swapped {
+			swap(item)
 		}
-	}
 
-	return l1
+		copy(l1[i*hashBytes:], item)
+	}
 }
 
 // generateDatasetItem combines data from 256 pseudorandomly selected cache nodes,

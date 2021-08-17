@@ -22,8 +22,8 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 	KeccakF800(&tempState)
 
 	// mixhash
-	seedHead := [2]uint32{tempState[0], tempState[1]}
-	mixHash := hashMix(l1, height, seedHead, lookup)
+	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
+	mixHash := hashProgpowMix(l1, height, seedHead, lookup)
 
 	// final hashed digest
 	var state [25]uint32
@@ -44,9 +44,6 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 	return mixHash, digest
 }
 
-// hashimotoLight aggregates data from the full dataset (using only a small
-// in-memory cache) in order to produce our final value for a particular header
-// hash and nonce.
 func (dag *LightDag) kawpowLight(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := calcEpoch(height, dag.EpochLength)
 	cache := dag.getCache(epoch)
@@ -56,9 +53,7 @@ func (dag *LightDag) kawpowLight(height, nonce uint64, hash []byte) ([]byte, []b
 		return generateDatasetItem2048(cache.cache, index, keccak512Hasher, dag.DatasetParents)
 	}
 
-	l1 := generateL1Cache(cache.cache)
-
-	mix, digest := kawpow(l1, hash, height, nonce, lookup)
+	mix, digest := kawpow(cache.l1, hash, height, nonce, lookup)
 	runtime.KeepAlive(cache)
 
 	return mix, digest

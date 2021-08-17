@@ -113,9 +113,8 @@ func TestInitMixRngState(t *testing.T) {
 
 }
 
-/*
 func TestInitMix(t *testing.T) {
-	seed := [2]uint32{0xEE304846, 0xDDD0A47B}
+	seed := uint64(0xEE304846DDD0A47B)
 
 	lanesExpected := map[int][32]uint32{
 		0: [32]uint32{
@@ -140,7 +139,7 @@ func TestInitMix(t *testing.T) {
 		},
 	}
 
-	mix := initMix(seed)
+	mix := initProgpowMix(seed)
 
 	for lane := range mix {
 		if expected, ok := lanesExpected[lane]; ok {
@@ -148,13 +147,13 @@ func TestInitMix(t *testing.T) {
 
 			for reg := range expected {
 				if actual[reg] != expected[reg] {
-					t.Errorf("failed Kiss99 test on iteration %d", lane)
+					t.Errorf("failed initProgpowMix test on iteration %d", lane)
 					continue
 				}
 			}
 		}
 	}
-}*/
+}
 
 func TestRandomMath(t *testing.T) {
 	cases := [][4]uint32{
