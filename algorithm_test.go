@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+const epochLengthRVN uint64 = 7500
 const epochLengthETH uint64 = 30000
 
 // int conversions as well as to handle both little and big endian systems.
@@ -51,7 +52,7 @@ func TestEpochNumberRVN(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		epoch := calcEpoch(tt.height, 7500)
+		epoch := calcEpoch(tt.height, epochLengthRVN)
 
 		if epoch != tt.epoch {
 			t.Errorf("epoch %d: epoch mismatch: have %d want %d", i, epoch, tt.epoch)
@@ -91,7 +92,7 @@ func TestEpochSeedRVN(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		seed := seedHash(uint64(tt.epoch)*7500+1, 7500)
+		seed := seedHash(uint64(tt.epoch)*epochLengthRVN+1, epochLengthRVN)
 
 		if !reflect.DeepEqual(seed, tt.seed) {
 			t.Errorf("cache %d: content mismatch: have %x, want %x", i, seed, tt.seed)
@@ -727,10 +728,10 @@ func TestLightCacheGenerationRVN(t *testing.T) {
 	}
 	for i, tt := range tests {
 		size := cacheSize(tt.epoch)
-		seed := seedHash(tt.epoch*7500+1, 7500)
+		seed := seedHash(tt.epoch*epochLengthRVN+1, epochLengthRVN)
 
 		cache := make([]uint32, size/4)
-		generateCache(cache, tt.epoch, 7500, seed)
+		generateCache(cache, tt.epoch, epochLengthRVN, seed)
 
 		raw := make([]byte, size)
 		for i := 0; i < int(size/4); i++ {
@@ -762,10 +763,10 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 
 	for i, tt := range tests {
 		size := cacheSize(tt.epoch)
-		seed := seedHash(tt.epoch*7500+1, 7500)
+		seed := seedHash(tt.epoch*epochLengthRVN+1, epochLengthRVN)
 
 		cache := make([]uint32, size/4)
-		generateCache(cache, tt.epoch, 7500, seed)
+		generateCache(cache, tt.epoch, epochLengthRVN, seed)
 
 		keccak512Hasher := NewKeccak512Hasher()
 		item1 := generateDatasetItem(cache, tt.index, keccak512Hasher, 512)

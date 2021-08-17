@@ -18,18 +18,21 @@ func TestComputeETH(t *testing.T) {
 			nonce:  0x2f6923f80426f157,
 			hash:   MustDecodeHex("0x69e71ffd37268b6cf7096cdd917c2c175eaaee8eb7afed4b5cf8521b09024818"),
 			mix:    MustDecodeHex("0x37fde31175fe180346444d15b4dfc6a9da3b2b41ee2298ceeccaf888b2d45df4"),
+			digest: MustDecodeHex("0x00000000000004418223e154cd70e083a4964684bf333f4654dac2fe76b999f6"),
 		},
 		{
 			height: 12000000,
 			nonce:  0xb62c052c3d4a3866,
 			hash:   MustDecodeHex("0x1940ee93bb48f1982b9fc546ae69ca9a59de4e55f9944900b3abf04436eb1ee1"),
 			mix:    MustDecodeHex("0x114f16f97d044682678844ea69212d6764998107ccb698fc6ae4fd2d71a33104"),
+			digest: MustDecodeHex("0x000000000000089029050a54342c13f7614c95da4a471ce0ef10c009f84c762b"),
 		},
 		{
-			height: 12500000,
-			nonce:  0xf2ff08440a19cae5,
-			hash:   MustDecodeHex("0xd3c23efff082cc2ad40258c6a26da172f23ad9507fa95312a0d10d656630bf6a"),
-			mix:    MustDecodeHex("0xdd18cd7f495c6084fe4ac49626ff06481a9b9e693e10fabaff7c3337cd309c79"),
+			height: 12965001,
+			nonce:  0x956e895d988798e,
+			hash:   MustDecodeHex("0xcf133ce0cccd4ad877d671b310c27f5ce19c28c14455dac45b90171bac5581c7"),
+			mix:    MustDecodeHex("0xcb3166ebb1888430069b769145b20ba5e3a55f32fd2fa39f0ebdc08d60b4557e"),
+			digest: MustDecodeHex("0x00000000000000012923a9ab2605573e0158adeb21c86b22d8ebd33b8ee08856"),
 		},
 	}
 
@@ -40,7 +43,7 @@ func TestComputeETH(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		mix, _, err := dag.Compute(tt.hash, tt.height, tt.nonce)
+		mix, digest, err := dag.Compute(tt.hash, tt.height, tt.nonce)
 		if err != nil {
 			t.Errorf("compute - ETH: error computing digest for test %d", i)
 			continue
@@ -48,6 +51,10 @@ func TestComputeETH(t *testing.T) {
 
 		if bytes.Compare(tt.mix, mix) != 0 {
 			t.Errorf("compute - ETH: mixhash does not match for test %d", i)
+		}
+
+		if bytes.Compare(tt.digest, digest) != 0 {
+			t.Errorf("compute - ETH: digest does not match for test %d", i)
 		}
 	}
 }
@@ -65,18 +72,21 @@ func TestComputeETC(t *testing.T) {
 			nonce:  0x37850ed39b8fedee,
 			hash:   MustDecodeHex("0x9451157911b225460f07e5eac6f63e39a0f4a6952ba544302c6b2aae51f36064"),
 			mix:    MustDecodeHex("0x929ce5aad1cfe51bfc88104b0ce6fdde605d21a6e1fa171cafbf7cccf310c626"),
+			digest: MustDecodeHex("0x0000000000012c6470946acc24916d4c5d4c4f143fef2db2f40e1d7e2e47776f"),
 		},
 		{
-			height: 13000000,
-			nonce:  0x1f636f90ee9459db,
-			hash:   MustDecodeHex("0xae3cb028681a4de56d3c2c994c2a054f1b1052232d100e5fc3ef8bc5e9abd562"),
-			mix:    MustDecodeHex("0x55354b04d489599ed8a999667501a6d950bc511a16ddb9dbdaa81d66667dfb42"),
+			height: 12500000,
+			nonce:  0x431d9c1839838ea1,
+			hash:   MustDecodeHex("0x1d225541aeda9d1110b9e61c0c6c81f12376e9b4111472351196b9d557ba83d8"),
+			mix:    MustDecodeHex("0xc280665934366eb1ac3fcf5e6f4e37945e05d764acf2a8106a982826078b613c"),
+			digest: MustDecodeHex("0x00000000000069bdf3a3bf3bab6529869d8419e477e53898d6c123d023386b20"),
 		},
 		{
 			height: 13344137,
-			nonce:  0x2d9b9d79ff89caf2,
-			hash:   MustDecodeHex("0xfed3eb74e36f2abc693168c7f96675a7302a38b1bea2b6468d69fcbde270541f"),
-			mix:    MustDecodeHex("0x91776c8615a6ed101d80ebf31458aeb07e770d50d6b8eedef1615fcf6654261b"),
+			nonce:  0x9827862e22a92ff1,
+			hash:   MustDecodeHex("0x27eaf677273c9147cd27b99c34b3783243255864a54b169af238750c39b3c167"),
+			mix:    MustDecodeHex("0x6dd0879bfe248c4ac73160a3d2554ce12431d2033b5f4464559368d855795df7"),
+			digest: MustDecodeHex("0x000000000000ca4bd2875398d73ab24e8467d5986bfe85ec7fca1b860a540d14"),
 		},
 	}
 
@@ -87,9 +97,7 @@ func TestComputeETC(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		// @TODO: add digest verification
-
-		mix, _, err := dag.Compute(tt.hash, tt.height, tt.nonce)
+		mix, digest, err := dag.Compute(tt.hash, tt.height, tt.nonce)
 		if err != nil {
 			t.Errorf("compute - ETC: error computing digest for test %d", i)
 			continue
@@ -97,6 +105,10 @@ func TestComputeETC(t *testing.T) {
 
 		if bytes.Compare(tt.mix, mix) != 0 {
 			t.Errorf("compute - ETC: mixhash does not match for test %d", i)
+		}
+
+		if bytes.Compare(tt.digest, digest) != 0 {
+			t.Errorf("compute - ETC: digest does not match for test %d", i)
 		}
 	}
 }
