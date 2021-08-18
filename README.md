@@ -1,6 +1,6 @@
 # Go PoW
 
-![build workflow](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)
+[![Go Test](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/go-pow)](https://pkg.go.dev/github.com/sencha-dev/go-pow?tab=doc)
 
 This is a library designed for Proof of Work validation for chains that require a DAG 
