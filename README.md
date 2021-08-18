@@ -3,8 +3,8 @@
 [![Go Test](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/go-pow)](https://pkg.go.dev/github.com/sencha-dev/go-pow?tab=doc)
 
-This is a library designed for Proof of Work validation for chains that require a DAG 
-- generally this refers to Ethash or ProgPOW chains. Currently `ethereum`, `ethereum classic`, 
+This is a library designed for Proof of Work validation for chains that require a DAG - generally 
+this refers to Ethash or ProgPOW chains. Currently `ethereum`, `ethereum classic`, 
 and `ravencoin` are supported. Target difficulty validation is left to the client because mining
 pools generally do two difficulty checks (share difficulty and block difficulty). Eventually
 there will probably be some difficulty validation utilities in here though.
@@ -27,7 +27,7 @@ implement though, it exists in `go-etchash` so it would just be a matter of addi
 the ProgPOW full DAG implementation.
 
 *note: for `ETC` and `RVN`, this will only work above the blocks for ECIP-1099 (`11700000` ) and the 
-Kawpow hard fork (`1219736`), respectively*
+Kawpow hard fork (`1219736`)*
 
 # Feature Todos
 
