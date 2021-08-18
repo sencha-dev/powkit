@@ -19,7 +19,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 		tempState[i] = ravencoinKawpow[i-10]
 	}
 
-	KeccakF800(&tempState)
+	keccakF800(&tempState)
 
 	// mixhash
 	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
@@ -37,7 +37,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 		state[i] = ravencoinKawpow[i-16]
 	}
 
-	KeccakF800(&state)
+	keccakF800(&state)
 
 	digest := uint32ArrayToBytes(state[:8])
 
@@ -48,7 +48,7 @@ func (dag *LightDag) kawpowLight(height, nonce uint64, hash []byte) ([]byte, []b
 	epoch := calcEpoch(height, dag.EpochLength)
 	cache := dag.getCache(epoch)
 
-	keccak512Hasher := NewKeccak512Hasher()
+	keccak512Hasher := newKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
 		return generateDatasetItem2048(cache.cache, index, keccak512Hasher, dag.DatasetParents)
 	}

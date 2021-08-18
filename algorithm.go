@@ -32,7 +32,7 @@ func seedHash(block uint64, epochLength uint64) []byte {
 	if block < epochLength {
 		return seed
 	}
-	keccak256Hasher := NewKeccak256Hasher()
+	keccak256Hasher := newKeccak256Hasher()
 	for i := 0; i < int(block/epochLength); i++ {
 		keccak256Hasher(seed, seed)
 	}
@@ -103,7 +103,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	rows := int(size) / hashBytes
 
 	// Create a hasher to reuse between invocations
-	keccak512Hasher := NewKeccak512Hasher()
+	keccak512Hasher := newKeccak512Hasher()
 
 	// Sequentially produce the initial dataset
 	keccak512Hasher(cache, seed)
@@ -121,7 +121,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 				dstOff = j * hashBytes
 				xorOff = (binary.LittleEndian.Uint32(cache[dstOff:]) % uint32(rows)) * hashBytes
 			)
-			XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
+			xorBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])
 			keccak512Hasher(cache[dstOff:], temp)
 		}
 	}
@@ -134,7 +134,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 func generateL1Cache(dest []uint32, cache []uint32) {
 	swapped := !isLittleEndian()
 
-	keccak512Hasher := NewKeccak512Hasher()
+	keccak512Hasher := newKeccak512Hasher()
 
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
 	header.Len *= 4
@@ -248,7 +248,7 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 			defer pend.Done()
 
 			// Create a hasher to reuse between invocations
-			keccak512Hasher := NewKeccak512Hasher()
+			keccak512Hasher := newKeccak512Hasher()
 
 			// Calculate the data segment this thread should generate
 			batch := (size + hashBytes*uint64(threads) - 1) / (hashBytes * uint64(threads))

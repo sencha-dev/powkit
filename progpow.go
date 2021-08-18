@@ -1,50 +1,38 @@
 package pow
 
-type MixArray [numLanes][numRegs]uint32
+type mixArray [numLanes][numRegs]uint32
 
-func (m *MixArray) Copy() MixArray {
-	var newMix MixArray
-
-	for i, v1 := range m {
-		for j, v2 := range v1 {
-			newMix[i][j] = v2
-		}
-	}
-
-	return newMix
-}
-
-type MixRngState struct {
+type mixRngState struct {
 	SrcCounter uint32
 	DstCounter uint32
 	SrcSeq     [numRegs]uint32
 	DstSeq     [numRegs]uint32
-	Rng        *Kiss99
+	Rng        *kiss99
 }
 
-func (s *MixRngState) nextDst() uint32 {
+func (s *mixRngState) nextDst() uint32 {
 	val := s.DstSeq[s.DstCounter%numRegs]
 	s.DstCounter++
 
 	return val
 }
 
-func (s *MixRngState) nextSrc() uint32 {
+func (s *mixRngState) nextSrc() uint32 {
 	val := s.SrcSeq[s.SrcCounter%numRegs]
 	s.SrcCounter++
 
 	return val
 }
 
-func initMixRngState(seed uint64) *MixRngState {
+func initmixRngState(seed uint64) *mixRngState {
 	var z, w, jsr, jcong uint32
 
-	z = fnv1a(FNV_OFFSET_BASIS, uint32(seed))
+	z = fnv1a(fnvOffsetBasis, uint32(seed))
 	w = fnv1a(z, uint32(seed>>32))
 	jsr = fnv1a(w, uint32(seed))
 	jcong = fnv1a(jsr, uint32(seed>>32))
 
-	rng := NewKiss99(z, w, jsr, jcong)
+	rng := newKiss99(z, w, jsr, jcong)
 
 	var srcSeq [numRegs]uint32
 	var dstSeq [numRegs]uint32
@@ -63,21 +51,21 @@ func initMixRngState(seed uint64) *MixRngState {
 		srcSeq[i-1], srcSeq[srcInd] = srcSeq[srcInd], srcSeq[i-1]
 	}
 
-	return &MixRngState{0, 0, srcSeq, dstSeq, rng}
+	return &mixRngState{0, 0, srcSeq, dstSeq, rng}
 }
 
-type Kiss99 struct {
+type kiss99 struct {
 	z     uint32
 	w     uint32
 	jsr   uint32
 	jcong uint32
 }
 
-func NewKiss99(z, w, jsr, jcong uint32) *Kiss99 {
-	return &Kiss99{z, w, jsr, jcong}
+func newKiss99(z, w, jsr, jcong uint32) *kiss99 {
+	return &kiss99{z, w, jsr, jcong}
 }
 
-func (k *Kiss99) Next() uint32 {
+func (k *kiss99) Next() uint32 {
 	k.z = 36969*(k.z&65535) + (k.z >> 16)
 	k.w = 18000*(k.w&65535) + (k.w >> 16)
 
@@ -90,16 +78,16 @@ func (k *Kiss99) Next() uint32 {
 	return (((k.z << 16) + k.w) ^ k.jcong) + k.jsr
 }
 
-func initProgpowMix(seed uint64) MixArray {
-	z := fnv1a(FNV_OFFSET_BASIS, uint32(seed))
+func initProgpowMix(seed uint64) mixArray {
+	z := fnv1a(fnvOffsetBasis, uint32(seed))
 	w := fnv1a(z, uint32(seed>>32))
 
-	var mix MixArray
+	var mix mixArray
 	for l := range mix {
 		jsr := fnv1a(w, uint32(l))
 		jcong := fnv1a(jsr, uint32(l))
 
-		rng := NewKiss99(z, w, jsr, jcong)
+		rng := newKiss99(z, w, jsr, jcong)
 
 		for r := range mix[l] {
 			mix[l][r] = rng.Next()
@@ -109,8 +97,8 @@ func initProgpowMix(seed uint64) MixArray {
 	return mix
 }
 
-func progpowRound(l1 []uint32, datasetSize uint64, r uint32, mix MixArray, seed uint64, lookup func(index uint32) []uint32) MixArray {
-	state := initMixRngState(seed)
+func progpowRound(l1 []uint32, datasetSize uint64, r uint32, mix mixArray, seed uint64, lookup func(index uint32) []uint32) mixArray {
+	state := initmixRngState(seed)
 	numItems := uint32(datasetSize / (2 * 128))
 	itemIndex := mix[r%numLanes][0] % numItems
 
@@ -188,7 +176,7 @@ func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index u
 
 	var laneHash [numLanes]uint32
 	for l := 0; l < int(numLanes); l++ {
-		laneHash[l] = FNV_OFFSET_BASIS
+		laneHash[l] = fnvOffsetBasis
 
 		for i := 0; i < int(numRegs); i++ {
 			laneHash[l] = fnv1a(laneHash[l], mix[l][i])
@@ -198,7 +186,7 @@ func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index u
 	numWords := 8
 	mixHash := make([]uint32, numWords)
 	for i := 0; i < numWords; i++ {
-		mixHash[i] = FNV_OFFSET_BASIS
+		mixHash[i] = fnvOffsetBasis
 	}
 
 	for l := 0; l < int(numLanes); l++ {

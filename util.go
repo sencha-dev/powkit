@@ -12,9 +12,6 @@ import (
 	"unsafe"
 )
 
-const FNV_PRIME uint32 = 0x01000193
-const FNV_OFFSET_BASIS uint32 = 0x811c9dc5
-
 /* OS utils */
 
 func defaultDir() string {
@@ -52,7 +49,7 @@ func uint32ArrayToBytes(c []uint32) []byte {
 /* Hex utils */
 
 // should only be used for tests
-func MustDecodeHex(inp string) []byte {
+func mustDecodeHex(inp string) []byte {
 	inp = strings.Replace(inp, "0x", "", -1)
 	out, err := hex.DecodeString(inp)
 	if err != nil {
@@ -66,7 +63,7 @@ func MustDecodeHex(inp string) []byte {
 
 // taken from github.com/ethereum/go-ethereum
 
-func XORBytes(dst, a, b []byte) int {
+func xorBytes(dst, a, b []byte) int {
 	n := len(a)
 	if len(b) < n {
 		n = len(b)
@@ -104,12 +101,12 @@ func swap(buffer []byte) {
 
 // See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1_hash.
 func fnv1(u, v uint32) uint32 {
-	return (u * FNV_PRIME) ^ v
+	return (u * fnvPrime) ^ v
 }
 
 // See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash.
 func fnv1a(u, v uint32) uint32 {
-	return (u ^ v) * FNV_PRIME
+	return (u ^ v) * fnvPrime
 }
 
 // fnvHash mixes in data into mix using the ethash fnv method.

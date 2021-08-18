@@ -46,7 +46,7 @@ func TestKiss99(t *testing.T) {
 		100000: 941074834,
 	}
 
-	kiss := NewKiss99(z, w, jsr, jcong)
+	kiss := newKiss99(z, w, jsr, jcong)
 
 	for i := 1; i < 100001; i++ {
 		actual := kiss.Next()
@@ -59,7 +59,7 @@ func TestKiss99(t *testing.T) {
 	}
 }
 
-func TestInitMixRngState(t *testing.T) {
+func TestInitmixRngState(t *testing.T) {
 	const period uint64 = 50
 	const height uint64 = 30000
 
@@ -83,32 +83,32 @@ func TestInitMixRngState(t *testing.T) {
 	const expectedJcong uint32 = 0x1165D7EB
 
 	number := height / period
-	state := initMixRngState(number)
+	state := initmixRngState(number)
 
 	for i := 0; i < len(expectedSrc); i++ {
 		if state.SrcSeq[i] != uint32(expectedSrc[i]) {
-			t.Errorf("failed initMixRngState test for SrcSeq value at index %d", i)
+			t.Errorf("failed initmixRngState test for SrcSeq value at index %d", i)
 		}
 
 		if state.DstSeq[i] != uint32(expectedDst[i]) {
-			t.Errorf("failed initMixRngState test for DstSeq value at index %d", i)
+			t.Errorf("failed initmixRngState test for DstSeq value at index %d", i)
 		}
 	}
 
 	if state.Rng.z != expectedZ {
-		t.Errorf("failed initMixRngState test for Rng value z")
+		t.Errorf("failed initmixRngState test for Rng value z")
 	}
 
 	if state.Rng.w != expectedW {
-		t.Errorf("failed initMixRngState test for Rng value w")
+		t.Errorf("failed initmixRngState test for Rng value w")
 	}
 
 	if state.Rng.jsr != expectedJsr {
-		t.Errorf("failed initMixRngState test for Rng value jsr")
+		t.Errorf("failed initmixRngState test for Rng value jsr")
 	}
 
 	if state.Rng.jcong != expectedJcong {
-		t.Errorf("failed initMixRngState test for Rng value jcong")
+		t.Errorf("failed initmixRngState test for Rng value jcong")
 	}
 
 }

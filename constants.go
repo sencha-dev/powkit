@@ -1,14 +1,11 @@
 package pow
 
-import (
-	"math/big"
-)
-
-var (
-	maxUint256 = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
-)
-
 const (
+	// fnv constants
+	fnvPrime       uint32 = 0x01000193
+	fnvOffsetBasis uint32 = 0x811c9dc5
+
+	// revisions
 	algorithmRevision = 23
 	progpowRevision   = "0.9.4"
 

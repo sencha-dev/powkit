@@ -8,13 +8,13 @@ import (
 
 /* Keccak wrappers */
 
-func Keccak256(b []byte) []byte {
+func keccak256(b []byte) []byte {
 	d := sha3.NewLegacyKeccak256()
 	d.Write(b)
 	return d.Sum(nil)
 }
 
-func Keccak512(b []byte) []byte {
+func keccak512(b []byte) []byte {
 	d := sha3.NewLegacyKeccak512()
 	d.Write(b)
 	return d.Sum(nil)
@@ -48,11 +48,11 @@ func makeHasher(h hash.Hash) hasher {
 	}
 }
 
-func NewKeccak256Hasher() hasher {
+func newKeccak256Hasher() hasher {
 	return makeHasher(sha3.NewLegacyKeccak256())
 }
 
-func NewKeccak512Hasher() hasher {
+func newKeccak512Hasher() hasher {
 	return makeHasher(sha3.NewLegacyKeccak512())
 }
 
@@ -89,7 +89,7 @@ func rol(x uint32, s uint) uint32 {
 	return x<<s | x>>(32-s)
 }
 
-func KeccakF800(state *[25]uint32) {
+func keccakF800(state *[25]uint32) {
 	var Aba, Abe, Abi, Abo, Abu uint32
 	var Aga, Age, Agi, Ago, Agu uint32
 	var Aka, Ake, Aki, Ako, Aku uint32
