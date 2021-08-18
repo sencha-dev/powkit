@@ -12,7 +12,8 @@ there will probably be some difficulty validation utilities in here though.
 This was created due to the lack of a Kawpow verification library
 in native Go. Since the DAG generation component of Kawpow varies only 
 slightly from Ethash, `go-etchash` was generalized to handle the different
-requirements of DAG generation and implemented the native algorithm for Kawpow.
+requirements of DAG generation and updated to implement Kawpow. Some more significant
+changes have been made, such as memory mapping the L1 cache for the Kawpow DAG.
 Before `go-pow`, the only clean solution for Kawpow hashing was using the RPC
 call `getkawpowhash` from the full node.
 
