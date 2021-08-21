@@ -42,17 +42,17 @@ To instantiate the DAG (*the only error `NewLightDag`
 will return is if the chain symbol is not supported*).
 
 ```go
-dag, err := NewLightDag("ETH")
+dag, err := NewLightDag("ETH", false)
 if err != nil {
 	panic(err)
 }
 
-dag, err := NewLightDag("ETC")
+dag, err := NewLightDag("ETC", false)
 if err != nil {
 	panic(err)
 }
 
-dag, err := NewLightDag("RVN")
+dag, err := NewLightDag("RVN", false)
 if err != nil {
 	panic(err)
 }

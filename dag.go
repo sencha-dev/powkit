@@ -126,9 +126,10 @@ type LightDag struct {
 	SeedEpochLength uint64 // ETC uses 30000 for the seed epoch length but 60000 for the rest
 	MinimumHeight   uint64
 	NeedsL1         bool
+	Testnet			bool
 }
 
-func NewLightDag(chain string) (*LightDag, error) {
+func NewLightDag(chain string, testnet bool) (*LightDag, error) {
 	chain = strings.ToUpper(chain)
 	var dag *LightDag
 
@@ -143,6 +144,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 			NumCaches:       cachesOnDisk,
 			MinimumHeight:   0,
 			NeedsL1:         false,
+			Testnet:		 testnet,
 		}
 	case "ETC":
 		dag = &LightDag{
@@ -154,6 +156,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 			NumCaches:       cachesOnDisk,
 			MinimumHeight:   11700000,
 			NeedsL1:         false,
+			Testnet:		 testnet,
 		}
 	case "RVN":
 		dag = &LightDag{
@@ -165,6 +168,7 @@ func NewLightDag(chain string) (*LightDag, error) {
 			NumCaches:       cachesOnDisk,
 			MinimumHeight:   1219736,
 			NeedsL1:         true,
+			Testnet:		 testnet,
 		}
 	default:
 		return nil, fmt.Errorf("%s is not supported", chain)
@@ -218,7 +222,7 @@ func (dag *LightDag) getCache(epoch uint64) *cache {
 }
 
 func (dag *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
-	if height < dag.MinimumHeight {
+	if !dag.Testnet && height < dag.MinimumHeight {
 		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, dag.MinimumHeight, dag.Chain)
 	}
 

@@ -36,7 +36,7 @@ func TestComputeETH(t *testing.T) {
 		},
 	}
 
-	dag, err := NewLightDag("ETH")
+	dag, err := NewLightDag("ETH", false)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -90,7 +90,7 @@ func TestComputeETC(t *testing.T) {
 		},
 	}
 
-	dag, err := NewLightDag("ETC")
+	dag, err := NewLightDag("ETC", false)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -144,7 +144,7 @@ func TestComputeRVN(t *testing.T) {
 		},
 	}
 
-	dag, err := NewLightDag("RVN")
+	dag, err := NewLightDag("RVN", false)
 	if err != nil {
 		t.Errorf("%v", err)
 		return

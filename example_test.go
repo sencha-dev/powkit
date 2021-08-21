@@ -16,7 +16,7 @@ func Example_computeETH() {
 		panic(err)
 	}
 
-	dag, err := pow.NewLightDag("ETH")
+	dag, err := pow.NewLightDag("ETH", false)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +39,7 @@ func Example_computeETC() {
 		panic(err)
 	}
 
-	dag, err := pow.NewLightDag("ETC")
+	dag, err := pow.NewLightDag("ETC", false)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +62,7 @@ func Example_computeRVN() {
 		panic(err)
 	}
 
-	dag, err := pow.NewLightDag("RVN")
+	dag, err := pow.NewLightDag("RVN", false)
 	if err != nil {
 		panic(err)
 	}
