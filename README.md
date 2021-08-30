@@ -3,6 +3,10 @@
 [![Go Test](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/go-pow)](https://pkg.go.dev/github.com/sencha-dev/go-pow?tab=doc)
 
+*Note: I plan to reorg the library to be defined by PoW functions (and their parameters, for example Equihash(200,9))
+since the ticker based approach is relatively useless, as well as add a few more algorithms (Cuckoo variations, 
+Equihash, Autolykos2, Verthash).*
+
 This is a library designed for Proof of Work validation for chains that require a DAG - generally 
 this refers to Ethash or ProgPOW chains. Currently `ethereum`, `ethereum classic`, 
 and `ravencoin` are supported. Target difficulty validation is left to the client because mining
