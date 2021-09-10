@@ -1,10 +1,25 @@
-package pow
+package dag
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/sencha-dev/go-pow/internal/crypto"
 )
+
+// should only be used for tests
+func mustDecodeHex(inp string) []byte {
+	inp = strings.Replace(inp, "0x", "", -1)
+	out, err := hex.DecodeString(inp)
+	if err != nil {
+		panic(err)
+	}
+
+	return out
+}
 
 const epochLengthRVN uint64 = 7500
 const epochLengthETH uint64 = 30000
@@ -52,7 +67,7 @@ func TestEpochNumberRVN(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		epoch := calcEpoch(tt.height, epochLengthRVN)
+		epoch := CalcEpoch(tt.height, epochLengthRVN)
 
 		if epoch != tt.epoch {
 			t.Errorf("epoch %d: epoch mismatch: have %d want %d", i, epoch, tt.epoch)
@@ -738,7 +753,7 @@ func TestLightCacheGenerationRVN(t *testing.T) {
 			binary.LittleEndian.PutUint32(raw[i*4:], cache[i])
 		}
 
-		hash := keccak256(raw)
+		hash := crypto.Keccak256(raw)
 
 		if !reflect.DeepEqual(hash, tt.hash) {
 			t.Errorf("cache %d: content mismatch: have %x, want %x", i, hash, tt.hash)
@@ -768,7 +783,7 @@ func TestDatasetItemGenerationRVN(t *testing.T) {
 		cache := make([]uint32, size/4)
 		generateCache(cache, tt.epoch, epochLengthRVN, seed)
 
-		keccak512Hasher := newKeccak512Hasher()
+		keccak512Hasher := crypto.NewKeccak512Hasher()
 		item1 := generateDatasetItem(cache, tt.index, keccak512Hasher, 512)
 		item2 := generateDatasetItem(cache, tt.index+1, keccak512Hasher, 512)
 
