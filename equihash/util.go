@@ -36,12 +36,23 @@ func uint32ArrayToBytes(c []uint32) []byte {
 	return buf
 }
 
-func bytesToUint32Array(arr []byte) []uint32 {
+func bytesToUint32ArrayLE(arr []byte) []uint32 {
 	length := len(arr) / 4
 	data := make([]uint32, length)
 
 	for i := 0; i < length; i++ {
 		data[i] = binary.LittleEndian.Uint32(arr[i*4 : (i+1)*4])
+	}
+
+	return data
+}
+
+func bytesToUint32ArrayBE(arr []byte) []uint32 {
+	length := len(arr) / 4
+	data := make([]uint32, length)
+
+	for i := 0; i < length; i++ {
+		data[i] = binary.BigEndian.Uint32(arr[i*4 : (i+1)*4])
 	}
 
 	return data

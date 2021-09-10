@@ -6,6 +6,8 @@ import (
 	"github.com/sencha-dev/go-pow/internal/crypto"
 )
 
+// @TODO: make sure zcash works from https://github.com/str4d/zcash-pow
+
 const (
 	SEED_LENGTH     = 16 //Length of seed in dwords ;
 	NONCE_LENGTH    = 24 //Length of nonce in bytes;
@@ -38,12 +40,12 @@ func New(n, k uint64, personal string) (*Equihash, error) {
 
 func (e *Equihash) Verify(seedBytes, inputBytes []byte, nonce uint32) bool {
 	seed := make([]uint32, SEED_LENGTH)
-	partialSeed := bytesToUint32Array(seedBytes)
+	partialSeed := bytesToUint32ArrayLE(seedBytes)
 	for i, val := range partialSeed {
 		seed[i] = val
 	}
 
-	inputs := bytesToUint32Array(inputBytes)
+	inputs := bytesToUint32ArrayLE(inputBytes)
 
 	input := make([]uint32, SEED_LENGTH+2)
 	for i := 0; i < SEED_LENGTH; i++ {
@@ -60,7 +62,7 @@ func (e *Equihash) Verify(seedBytes, inputBytes []byte, nonce uint32) bool {
 		input[SEED_LENGTH+1] = inputs[i]
 		inputBytes := uint32ArrayToBytes(input)
 		tempBuf := crypto.Blake2b(inputBytes, e.personal, MAX_N)
-		buf = bytesToUint32Array(tempBuf)
+		buf = bytesToUint32ArrayLE(tempBuf)
 
 		for j := 0; j < (int(e.k) + 1); j++ {
 			blocks[j] = blocks[j] ^ (buf[j] >> (32 - e.n/(e.k+1)))

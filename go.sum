@@ -1,9 +1,7 @@
-github.com/codahale/blake2 v0.0.0-20150924215134-8d10d0420cbf h1:5ZeQB3mThuz5C2MSER6T5GdtXTF9CMMk42F9BOyRsEQ=
-github.com/codahale/blake2 v0.0.0-20150924215134-8d10d0420cbf/go.mod h1:BO2rLUAZMrpgh6GBVKi0Gjdqw2MgCtJrtmUdDeZRKjY=
+github.com/dchest/blake2b v1.0.0 h1:KK9LimVmE0MjRl9095XJmKqZ+iLxWATvlcpVFRtaw6s=
+github.com/dchest/blake2b v1.0.0/go.mod h1:U034kXgbJpCle2wSk5ybGIVhOSHCVLMDqOzcPEA0F7s=
 github.com/edsrzf/mmap-go v1.0.0 h1:CEBF7HpRnUCSJgGUb5h1Gm7e3VkmVDrR8lvWVLtrOFw=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
-github.com/keep-network/blake2b v1.0.1 h1:j6blQmn8hQiNKYGOv0GHt+fQfTmRqPV7iVdDDVZ75uY=
-github.com/keep-network/blake2b v1.0.1/go.mod h1:+4gf9vbhVkhKJ28zNGxttb0OiGhOX/1GbVuLP3BbxSg=
 golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 h1:/UOmuWzQfxxo9UtlXMwuQU8CMgg1eZXqTRwkSQJWKOI=
 golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=

@@ -1,16 +1,22 @@
 package crypto
 
 import (
-	"github.com/codahale/blake2"
+	"github.com/dchest/blake2b"
 )
 
 func Blake2b(inp, personal []byte, size int) []byte {
-	h := blake2.New(&blake2.Config{
-		Size:     uint8(size),
-		Key:      nil,
-		Salt:     nil,
-		Personal: personal,
+	h, err := blake2b.New(&blake2b.Config{
+		Size:   uint8(size),
+		Key:    nil,
+		Salt:   nil,
+		Person: personal,
 	})
+
+	// this error only happens on invalid configs
+	if err != nil {
+		panic(err)
+	}
+
 	h.Write(inp)
 
 	return h.Sum(nil)
