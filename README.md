@@ -3,15 +3,11 @@
 [![Go Test](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/go-pow)](https://pkg.go.dev/github.com/sencha-dev/go-pow?tab=doc)
 
-*Note: I plan to reorg the library to be defined by PoW functions (and their parameters, for example Equihash(200,9))
-since the ticker based approach is relatively useless, as well as add a few more algorithms (Cuckoo variations, 
-Equihash, Autolykos2, Verthash).*
+*Note: This library is still in active development and is
+subject to breaking changes*
 
 This is a library designed for Proof of Work validation for chains that require a DAG - generally 
-this refers to Ethash or ProgPOW chains. Currently `ethereum`, `ethereum classic`, 
-and `ravencoin` are supported. Target difficulty validation is left to the client because mining
-pools generally do two difficulty checks (share difficulty and block difficulty). Eventually
-there will probably be some difficulty validation utilities in here though.
+this refers to Ethash or ProgPOW chains. 
 
 This was created due to the lack of a Kawpow verification library
 in native Go. Since the DAG generation component of Kawpow varies only 
@@ -30,42 +26,3 @@ Finally, this library only implements a light DAG - the full DAG is very large a
 isn't really a use case for pools to use it during validation. It wouldn't be too difficult to 
 implement though, it exists in `go-etchash` so it would just be a matter of adding
 the ProgPOW full DAG implementation.
-
-*note: for `ETC` and `RVN`, this will only work above the blocks for ECIP-1099 (`11700000` ) and the 
-Kawpow hard fork (`1219736`)*
-
-# Feature Todos
-
-- [ ] Make file cleanup more consistent
-- [ ] Utility functions for difficulty validation
-- [ ] Implement testnet support
-
-# Usage
-
-To instantiate the DAG (*the only error `NewLightDag` 
-will return is if the chain symbol is not supported*).
-
-```go
-dag, err := NewLightDag("ETH", false)
-if err != nil {
-	panic(err)
-}
-
-dag, err := NewLightDag("ETC", false)
-if err != nil {
-	panic(err)
-}
-
-dag, err := NewLightDag("RVN", false)
-if err != nil {
-	panic(err)
-}
-```
-
-To compute a mix and digest (*the only error `Compute`
-will return is if the height is below the chain's 
-minimum height*).
-
-```go
-mix, digest, err := dag.Compute(hash, height, nonce)
-```
