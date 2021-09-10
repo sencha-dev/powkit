@@ -1,4 +1,9 @@
-package pow
+package kawpow
+
+import (
+	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/go-pow/internal/dag"
+)
 
 type mixArray [numLanes][numRegs]uint32
 
@@ -27,10 +32,10 @@ func (s *mixRngState) nextSrc() uint32 {
 func initmixRngState(seed uint64) *mixRngState {
 	var z, w, jsr, jcong uint32
 
-	z = fnv1a(fnvOffsetBasis, uint32(seed))
-	w = fnv1a(z, uint32(seed>>32))
-	jsr = fnv1a(w, uint32(seed))
-	jcong = fnv1a(jsr, uint32(seed>>32))
+	z = crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
+	w = crypto.Fnv1a(z, uint32(seed>>32))
+	jsr = crypto.Fnv1a(w, uint32(seed))
+	jcong = crypto.Fnv1a(jsr, uint32(seed>>32))
 
 	rng := newKiss99(z, w, jsr, jcong)
 
@@ -79,13 +84,13 @@ func (k *kiss99) Next() uint32 {
 }
 
 func initProgpowMix(seed uint64) mixArray {
-	z := fnv1a(fnvOffsetBasis, uint32(seed))
-	w := fnv1a(z, uint32(seed>>32))
+	z := crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
+	w := crypto.Fnv1a(z, uint32(seed>>32))
 
 	var mix mixArray
 	for l := range mix {
-		jsr := fnv1a(w, uint32(l))
-		jcong := fnv1a(jsr, uint32(l))
+		jsr := crypto.Fnv1a(w, uint32(l))
+		jcong := crypto.Fnv1a(jsr, uint32(l))
 
 		rng := newKiss99(z, w, jsr, jcong)
 
@@ -167,8 +172,8 @@ func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index u
 	mix := initProgpowMix(seed)
 
 	number := height / periodLength
-	epoch := calcEpoch(height, 7500)
-	datasetSize := datasetSize(epoch)
+	epoch := dag.CalcEpoch(height, 7500)
+	datasetSize := dag.DatasetSize(epoch)
 
 	for i := 0; i < kawpowRounds; i++ {
 		mix = progpowRound(l1, datasetSize, uint32(i), mix, number, lookup)
@@ -179,7 +184,7 @@ func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index u
 		laneHash[l] = fnvOffsetBasis
 
 		for i := 0; i < int(numRegs); i++ {
-			laneHash[l] = fnv1a(laneHash[l], mix[l][i])
+			laneHash[l] = crypto.Fnv1a(laneHash[l], mix[l][i])
 		}
 	}
 
@@ -190,7 +195,7 @@ func hashProgpowMix(l1 []uint32, height uint64, seed uint64, lookup func(index u
 	}
 
 	for l := 0; l < int(numLanes); l++ {
-		mixHash[l%numWords] = fnv1a(mixHash[l%numWords], laneHash[l])
+		mixHash[l%numWords] = crypto.Fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
 	return uint32ArrayToBytes(mixHash)

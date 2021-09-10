@@ -1,8 +1,9 @@
-package pow
+package kawpow
 
 import (
 	"encoding/binary"
-	"runtime"
+
+	"github.com/sencha-dev/go-pow/internal/crypto"
 )
 
 func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
@@ -19,7 +20,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 		tempState[i] = ravencoinKawpow[i-10]
 	}
 
-	keccakF800(&tempState)
+	crypto.KeccakF800(&tempState)
 
 	// mixhash
 	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
@@ -37,24 +38,9 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 		state[i] = ravencoinKawpow[i-16]
 	}
 
-	keccakF800(&state)
+	crypto.KeccakF800(&state)
 
 	digest := uint32ArrayToBytes(state[:8])
 
 	return mixHash, digest
-}
-
-func (dag *LightDag) kawpowLight(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := calcEpoch(height, dag.EpochLength)
-	cache := dag.getCache(epoch)
-
-	keccak512Hasher := newKeccak512Hasher()
-	lookup := func(index uint32) []uint32 {
-		return generateDatasetItem2048(cache.cache, index, keccak512Hasher, dag.DatasetParents)
-	}
-
-	mix, digest := kawpow(cache.l1, hash, height, nonce, lookup)
-	runtime.KeepAlive(cache)
-
-	return mix, digest
 }

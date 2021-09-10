@@ -1,4 +1,4 @@
-package pow
+package dag
 
 import (
 	"errors"

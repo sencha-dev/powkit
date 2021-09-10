@@ -1,63 +1,22 @@
-package pow
+package crypto
 
 import (
-	"hash"
-
 	"golang.org/x/crypto/sha3"
 )
 
-/* Keccak wrappers */
+func Keccak256(b []byte) []byte {
+	h := sha3.NewLegacyKeccak256()
+	h.Write(b)
 
-func keccak256(b []byte) []byte {
-	d := sha3.NewLegacyKeccak256()
-	d.Write(b)
-	return d.Sum(nil)
+	return h.Sum(nil)
 }
 
-func keccak512(b []byte) []byte {
-	d := sha3.NewLegacyKeccak512()
-	d.Write(b)
-	return d.Sum(nil)
+func Keccak512(b []byte) []byte {
+	h := sha3.NewLegacyKeccak512()
+	h.Write(b)
+
+	return h.Sum(nil)
 }
-
-/* Hasher utils */
-
-// hasher is a repetitive hasher allowing the same hash data structures to be
-// reused between hash runs instead of requiring new ones to be created.
-type hasher func(dest []byte, data []byte)
-
-// makeHasher creates a repetitive hasher, allowing the same hash data structures to
-// be reused between hash runs instead of requiring new ones to be created. The returned
-// function is not thread safe!
-func makeHasher(h hash.Hash) hasher {
-	// sha3.state supports Read to get the sum, use it to avoid the overhead of Sum.
-	// Read alters the state but we reset the hash before every operation.
-	type readerHash interface {
-		hash.Hash
-		Read([]byte) (int, error)
-	}
-	rh, ok := h.(readerHash)
-	if !ok {
-		panic("can't find Read method on hash")
-	}
-	outputLen := rh.Size()
-	return func(dest []byte, data []byte) {
-		rh.Reset()
-		rh.Write(data)
-		rh.Read(dest[:outputLen])
-	}
-}
-
-func newKeccak256Hasher() hasher {
-	return makeHasher(sha3.NewLegacyKeccak256())
-}
-
-func newKeccak512Hasher() hasher {
-	return makeHasher(sha3.NewLegacyKeccak512())
-}
-
-/* KeccakF800 ported from
-github.com/traysi/kawpow-light-verifier/blob/master/ethash/keccakf800.c */
 
 // rc stores the round constants for use in the ι step.
 var rck8 = [22]uint32{
@@ -89,7 +48,7 @@ func rol(x uint32, s uint) uint32 {
 	return x<<s | x>>(32-s)
 }
 
-func keccakF800(state *[25]uint32) {
+func KeccakF800(state *[25]uint32) {
 	var Aba, Abe, Abi, Abo, Abu uint32
 	var Aga, Age, Agi, Ago, Agu uint32
 	var Aka, Ake, Aki, Ako, Aku uint32

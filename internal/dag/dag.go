@@ -1,11 +1,10 @@
-package pow
+package dag
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
@@ -25,6 +24,14 @@ type cache struct {
 	l1Dump    *os.File
 	l1Mmap    mmap.MMap
 	l1        []uint32
+}
+
+func (c *cache) Cache() []uint32 {
+	return c.cache
+}
+
+func (c *cache) L1() []uint32 {
+	return c.l1
 }
 
 // generate ensures that the cache content is generated before use.
@@ -118,66 +125,15 @@ type LightDag struct {
 	caches map[uint64]*cache // Currently maintained verification caches
 	future *cache            // Pre-generated cache for the estimated future DAG
 
-	Chain           string
-	Algorithm       string
+	Name            string
 	NumCaches       int // Maximum number of caches to keep before eviction (only init, don't modify)
 	DatasetParents  uint32
 	EpochLength     uint64
 	SeedEpochLength uint64 // ETC uses 30000 for the seed epoch length but 60000 for the rest
-	MinimumHeight   uint64
 	NeedsL1         bool
-	Testnet			bool
 }
 
-func NewLightDag(chain string, testnet bool) (*LightDag, error) {
-	chain = strings.ToUpper(chain)
-	var dag *LightDag
-
-	switch chain {
-	case "ETH":
-		dag = &LightDag{
-			Chain:           "ETH",
-			Algorithm:       "ethash",
-			EpochLength:     30000,
-			SeedEpochLength: 30000,
-			DatasetParents:  256,
-			NumCaches:       cachesOnDisk,
-			MinimumHeight:   0,
-			NeedsL1:         false,
-			Testnet:		 testnet,
-		}
-	case "ETC":
-		dag = &LightDag{
-			Chain:           "ETC",
-			Algorithm:       "etchash",
-			EpochLength:     60000,
-			SeedEpochLength: 30000,
-			DatasetParents:  256,
-			NumCaches:       cachesOnDisk,
-			MinimumHeight:   11700000,
-			NeedsL1:         false,
-			Testnet:		 testnet,
-		}
-	case "RVN":
-		dag = &LightDag{
-			Chain:           "RVN",
-			Algorithm:       "kawpow",
-			EpochLength:     7500,
-			SeedEpochLength: 7500,
-			DatasetParents:  512,
-			NumCaches:       cachesOnDisk,
-			MinimumHeight:   1219736,
-			NeedsL1:         true,
-			Testnet:		 testnet,
-		}
-	default:
-		return nil, fmt.Errorf("%s is not supported", chain)
-	}
-
-	return dag, nil
-}
-
-func (dag *LightDag) getCache(epoch uint64) *cache {
+func (dag *LightDag) GetCache(epoch uint64) *cache {
 	var c *cache
 
 	dag.mu.Lock()
@@ -209,32 +165,14 @@ func (dag *LightDag) getCache(epoch uint64) *cache {
 		nextEpoch := epoch + 1
 		if dag.future == nil || dag.future.epoch <= epoch {
 			dag.future = &cache{epoch: nextEpoch, epochLength: dag.EpochLength, seedEpochLength: dag.SeedEpochLength}
-			go dag.future.generate(dag.Chain, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
+			go dag.future.generate(dag.Name, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
 		}
 	}
 
 	c.used = time.Now()
 	dag.mu.Unlock()
 
-	c.generate(dag.Chain, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
+	c.generate(dag.Name, defaultDir(), dag.NumCaches, cachesLockMmap, dag.NeedsL1)
 
 	return c
-}
-
-func (dag *LightDag) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
-	if !dag.Testnet && height < dag.MinimumHeight {
-		return nil, nil, fmt.Errorf("%d is below the minimum height %d for %s", height, dag.MinimumHeight, dag.Chain)
-	}
-
-	var mix, digest []byte
-	switch dag.Chain {
-	case "ETH", "ETC":
-		mix, digest = dag.hashimotoLight(height, nonce, hash)
-	case "RVN":
-		mix, digest = dag.kawpowLight(height, nonce, hash)
-	default:
-		return nil, nil, fmt.Errorf("unsupported chain %s", dag.Chain)
-	}
-
-	return mix, digest, nil
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package pow
+package dag
 
 import (
 	"encoding/binary"
@@ -23,6 +23,8 @@ import (
 	"runtime"
 	"sync"
 	"unsafe"
+
+	"github.com/sencha-dev/go-pow/internal/crypto"
 )
 
 // seedHash is the seed to use for generating a verification cache and the mining
@@ -32,7 +34,7 @@ func seedHash(block uint64, epochLength uint64) []byte {
 	if block < epochLength {
 		return seed
 	}
-	keccak256Hasher := newKeccak256Hasher()
+	keccak256Hasher := crypto.NewKeccak256Hasher()
 	for i := 0; i < int(block/epochLength); i++ {
 		keccak256Hasher(seed, seed)
 	}
@@ -40,7 +42,7 @@ func seedHash(block uint64, epochLength uint64) []byte {
 }
 
 // calcEpoch returns the epoch for a given block number (ECIP-1099)
-func calcEpoch(block uint64, epochLength uint64) uint64 {
+func CalcEpoch(block uint64, epochLength uint64) uint64 {
 	epoch := block / epochLength
 	return epoch
 }
@@ -67,7 +69,7 @@ func calcCacheSize(epoch uint64) uint64 {
 
 // datasetSize returns the size of the ethash mining dataset that belongs to a certain
 // block number.
-func datasetSize(epoch uint64) uint64 {
+func DatasetSize(epoch uint64) uint64 {
 	if epoch < maxEpoch {
 		return datasetSizes[int(epoch)]
 	}
@@ -103,7 +105,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 	rows := int(size) / hashBytes
 
 	// Create a hasher to reuse between invocations
-	keccak512Hasher := newKeccak512Hasher()
+	keccak512Hasher := crypto.NewKeccak512Hasher()
 
 	// Sequentially produce the initial dataset
 	keccak512Hasher(cache, seed)
@@ -134,7 +136,7 @@ func generateCache(dest []uint32, epoch uint64, epochLength uint64, seed []byte)
 func generateL1Cache(dest []uint32, cache []uint32) {
 	swapped := !isLittleEndian()
 
-	keccak512Hasher := newKeccak512Hasher()
+	keccak512Hasher := crypto.NewKeccak512Hasher()
 
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
 	header.Len *= 4
@@ -156,7 +158,7 @@ func generateL1Cache(dest []uint32, cache []uint32) {
 
 // generateDatasetItem combines data from 256 pseudorandomly selected cache nodes,
 // and hashes that to compute a single dataset node.
-func generateDatasetItem(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []byte {
+func generateDatasetItem(cache []uint32, index uint32, keccak512Hasher crypto.Hasher, datasetParents uint32) []byte {
 	// Calculate the number of theoretical rows (we use one buffer nonetheless)
 	rows := uint32(len(cache) / hashWords)
 
@@ -176,8 +178,8 @@ func generateDatasetItem(cache []uint32, index uint32, keccak512Hasher hasher, d
 	}
 	// fnv it with a lot of random cache nodes based on index
 	for i := uint32(0); i < datasetParents; i++ {
-		parent := fnv1(index^i, intMix[i%16]) % rows
-		fnvHash(intMix, cache[parent*hashWords:])
+		parent := crypto.Fnv1(index^i, intMix[i%16]) % rows
+		crypto.FnvHash(intMix, cache[parent*hashWords:])
 	}
 	// Flatten the uint32 mix into a binary one and return
 	for i, val := range intMix {
@@ -187,7 +189,7 @@ func generateDatasetItem(cache []uint32, index uint32, keccak512Hasher hasher, d
 	return mix
 }
 
-func generateDatasetItem512(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
+func GenerateDatasetItem512(cache []uint32, index uint32, keccak512Hasher crypto.Hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords)
 	item := generateDatasetItem(cache, index, keccak512Hasher, datasetParents)
 
@@ -198,7 +200,7 @@ func generateDatasetItem512(cache []uint32, index uint32, keccak512Hasher hasher
 	return data
 }
 
-func generateDatasetItem1024(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
+func GenerateDatasetItem1024(cache []uint32, index uint32, keccak512Hasher crypto.Hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords*2)
 	for n := 0; n < 2; n++ {
 		item := generateDatasetItem(cache, index*2+uint32(n), keccak512Hasher, datasetParents)
@@ -211,7 +213,7 @@ func generateDatasetItem1024(cache []uint32, index uint32, keccak512Hasher hashe
 	return data
 }
 
-func generateDatasetItem2048(cache []uint32, index uint32, keccak512Hasher hasher, datasetParents uint32) []uint32 {
+func GenerateDatasetItem2048(cache []uint32, index uint32, keccak512Hasher crypto.Hasher, datasetParents uint32) []uint32 {
 	data := make([]uint32, hashWords*4)
 	for n := 0; n < 4; n++ {
 		item := generateDatasetItem(cache, index*4+uint32(n), keccak512Hasher, datasetParents)
@@ -248,7 +250,7 @@ func generateDataset(dest []uint32, epoch uint64, epochLength uint64, cache []ui
 			defer pend.Done()
 
 			// Create a hasher to reuse between invocations
-			keccak512Hasher := newKeccak512Hasher()
+			keccak512Hasher := crypto.NewKeccak512Hasher()
 
 			// Calculate the data segment this thread should generate
 			batch := (size + hashBytes*uint64(threads) - 1) / (hashBytes * uint64(threads))

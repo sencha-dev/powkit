@@ -1,29 +1,10 @@
-package pow
+package kawpow
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"math/bits"
-	"os"
-	"os/user"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"unsafe"
 )
-
-/* OS utils */
-
-func defaultDir() string {
-	home := os.Getenv("HOME")
-	if user, err := user.Current(); err == nil {
-		home = user.HomeDir
-	}
-	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "AppData", "PowCache")
-	}
-	return filepath.Join(home, ".powcache")
-}
 
 func isLittleEndian() bool {
 	n := uint32(0x01020304)
@@ -46,32 +27,15 @@ func uint32ArrayToBytes(c []uint32) []byte {
 	return buf
 }
 
-/* Hex utils */
+func bytesToUint32Array(arr []byte) []uint32 {
+	length := len(arr) / 4
+	data := make([]uint32, length)
 
-// should only be used for tests
-func mustDecodeHex(inp string) []byte {
-	inp = strings.Replace(inp, "0x", "", -1)
-	out, err := hex.DecodeString(inp)
-	if err != nil {
-		panic(err)
+	for i := 0; i < length; i++ {
+		data[i] = binary.LittleEndian.Uint32(arr[i*4 : (i+1)*4])
 	}
 
-	return out
-}
-
-/* Bit Utils */
-
-// taken from github.com/ethereum/go-ethereum
-
-func xorBytes(dst, a, b []byte) int {
-	n := len(a)
-	if len(b) < n {
-		n = len(b)
-	}
-	for i := 0; i < n; i++ {
-		dst[i] = a[i] ^ b[i]
-	}
-	return n
+	return data
 }
 
 /* Math utils */
@@ -90,30 +54,6 @@ func max(a, b int) int {
 	}
 
 	return b
-}
-
-// swap changes the byte order of the buffer assuming a uint32 representation.
-func swap(buffer []byte) {
-	for i := 0; i < len(buffer); i += 4 {
-		binary.BigEndian.PutUint32(buffer[i:], binary.LittleEndian.Uint32(buffer[i:]))
-	}
-}
-
-// See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1_hash.
-func fnv1(u, v uint32) uint32 {
-	return (u * fnvPrime) ^ v
-}
-
-// See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash.
-func fnv1a(u, v uint32) uint32 {
-	return (u ^ v) * fnvPrime
-}
-
-// fnvHash mixes in data into mix using the ethash fnv method.
-func fnvHash(mix []uint32, data []uint32) {
-	for i := 0; i < len(mix); i++ {
-		mix[i] = fnv1(mix[i], data[i])
-	}
 }
 
 // following functionst taken from github.com/pkt-cash/pktd/
