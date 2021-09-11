@@ -1,3 +1,5 @@
+// Copyright (c) 2021 Electric Coin Company
+
 package equihash
 
 import (
