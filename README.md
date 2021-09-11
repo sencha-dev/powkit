@@ -24,7 +24,7 @@ some libraries like `cpp-kawpow` were forked three or four times without license
 making it fairly difficult to keep track. I'm always happy to update them if I've made
 a mistake.*
 
-  - [Victor Tran: ethashproof](https://github.com/tranvictor/ethashproof))
+  - [Victor Tran: ethashproof](https://github.com/tranvictor/ethashproof)
   - [Ethereum Classic Labs: go-etchash](https://github.com/etclabscore/go-etchash)
   - [RavencoinCommunity: cpp-kawpow](https://github.com/RavenCommunity/cpp-kawpow/)
   - [Zcash: librustzcash (equihash)](https://github.com/zcash/librustzcash/tree/master/components/equihash)
