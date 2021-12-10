@@ -2,34 +2,36 @@
 // Copyright 2018-2019 Pawel Bylica.
 // Licensed under the Apache License, Version 2.0.
 
-package kawpow
+package firopow
 
 import (
 	"encoding/binary"
+	"unsafe"
 
 	"github.com/sencha-dev/go-pow/internal/crypto"
 	"github.com/sencha-dev/go-pow/internal/progpow"
 )
 
-var ravencoinKawpow [15]uint32 = [15]uint32{
-	0x00000072, //R
-	0x00000041, //A
-	0x00000056, //V
-	0x00000045, //E
-	0x0000004E, //N
-	0x00000043, //C
-	0x0000004F, //O
-	0x00000049, //I
-	0x0000004E, //N
-	0x0000004B, //K
-	0x00000041, //A
-	0x00000057, //W
-	0x00000050, //P
-	0x0000004F, //O
-	0x00000057, //W
+func isLittleEndian() bool {
+	n := uint32(0x01020304)
+	return *(*byte)(unsafe.Pointer(&n)) == 0x04
 }
 
-func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
+func uint32ArrayToBytes(c []uint32) []byte {
+	buf := make([]byte, len(c)*4)
+	if isLittleEndian() {
+		for i, v := range c {
+			binary.LittleEndian.PutUint32(buf[i*4:], v)
+		}
+	} else {
+		for i, v := range c {
+			binary.BigEndian.PutUint32(buf[i*4:], v)
+		}
+	}
+	return buf
+}
+
+func firopow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
 	// temporary initialization state
 	var tempState [25]uint32
 	for i := 0; i < 8; i += 1 {
@@ -38,28 +40,24 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 
 	tempState[8] = uint32(nonce)
 	tempState[9] = uint32(nonce >> 32)
-
-	for i := 10; i < 25; i++ {
-		tempState[i] = ravencoinKawpow[i-10]
-	}
-
-	crypto.KeccakF800(&tempState)
+	tempState[10] = 0x00000001
+	tempState[18] = 0x80008081
 
 	// mixhash
+	crypto.KeccakF800(&tempState)
+
 	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
-	mixHash := progpow.HashMix(progpow.Kawpow, height, seedHead, l1, lookup)
+	mixHash := progpow.HashMix(progpow.Firopow, height, seedHead, l1, lookup)
 
 	// final hashed digest
 	var state [25]uint32
 	for i := 0; i < 8; i++ {
 		state[i] = tempState[i]
 		state[i+8] = binary.LittleEndian.Uint32(mixHash[i*4 : i*4+4])
-
 	}
 
-	for i := 16; i < 25; i++ {
-		state[i] = ravencoinKawpow[i-16]
-	}
+	state[17] = 0x00000001
+	state[24] = 0x80008081
 
 	crypto.KeccakF800(&state)
 

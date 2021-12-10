@@ -29,10 +29,6 @@ type Kawpow struct {
 	dag         *dag.LightDag
 }
 
-const (
-	cachesOnDisk = 3
-)
-
 func New(name string, epochLength uint64) *Kawpow {
 	client := &Kawpow{
 		epochLength: epochLength,
@@ -41,7 +37,7 @@ func New(name string, epochLength uint64) *Kawpow {
 			EpochLength:     epochLength,
 			SeedEpochLength: epochLength,
 			DatasetParents:  512,
-			NumCaches:       cachesOnDisk,
+			NumCaches:       3,
 			NeedsL1:         true,
 		},
 	}

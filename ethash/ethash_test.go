@@ -51,7 +51,7 @@ func TestEthash(t *testing.T) {
 	client := New("ETH", 30000)
 
 	for i, tt := range tests {
-		mix, digest := client.Compute(tt.hash, tt.height, tt.nonce)
+		mix, digest := client.Compute(tt.height, tt.nonce, tt.hash)
 
 		if bytes.Compare(tt.mix, mix) != 0 {
 			t.Errorf("compute - ETH: mixhash does not match for test %d", i)
@@ -97,7 +97,7 @@ func TestEtchash(t *testing.T) {
 	client := New("ETC", 60000)
 
 	for i, tt := range tests {
-		mix, digest := client.Compute(tt.hash, tt.height, tt.nonce)
+		mix, digest := client.Compute(tt.height, tt.nonce, tt.hash)
 
 		if bytes.Compare(tt.mix, mix) != 0 {
 			t.Errorf("compute - ETC: mixhash does not match for test %d", i)

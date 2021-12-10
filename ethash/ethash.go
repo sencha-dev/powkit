@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-
 package ethash
 
 import (
@@ -30,10 +29,6 @@ type Ethash struct {
 	dag         *dag.LightDag
 }
 
-const (
-	cachesOnDisk = 3
-)
-
 func New(name string, epochLength uint64) *Ethash {
 	client := &Ethash{
 		epochLength: epochLength,
@@ -42,7 +37,7 @@ func New(name string, epochLength uint64) *Ethash {
 			EpochLength:     epochLength,
 			SeedEpochLength: 30000,
 			DatasetParents:  256,
-			NumCaches:       cachesOnDisk,
+			NumCaches:       3,
 			NeedsL1:         false,
 		},
 	}
@@ -50,7 +45,7 @@ func New(name string, epochLength uint64) *Ethash {
 	return client
 }
 
-func (e *Ethash) Compute(hash []byte, height, nonce uint64) ([]byte, []byte) {
+func (e *Ethash) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := dag.CalcEpoch(height, e.epochLength)
 	size := dag.DatasetSize(epoch)
 	cache := e.dag.GetCache(epoch)
