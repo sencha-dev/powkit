@@ -15,17 +15,16 @@ be added eventually.
 All DAG-based algorithms only implement a light DAG, which is sufficient for verification
 but not mining. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
 Ethash will generally be between 40-80Mb per epoch (and we cache 3 epochs), but verthash
-requires a strict 1.2Gb, so be careful if you're using verthash in memory. 
+requires a strict 1.2Gb, so be careful if you're using verthash in memory.
+
+Running `make test` will throw about 2.2Gb of data into `~/.powcache` due to the variety
+and breadth of tests.
 
 # References
 
-*Note: I have done my best to keep the copyright notices in each given file, though
-some libraries like `cpp-kawpow` were forked three or four times without license headers,
-making it fairly difficult to keep track. I'm always happy to update them if I've made
-a mistake.*
-
-  - [Victor Tran: ethashproof](https://github.com/tranvictor/ethashproof)
+  - [Ethereum: go-ethereum](https://github.com/ethereum/go-ethereum/blob/master/consensus/ethash/ethash.go)
   - [Ethereum Classic Labs: go-etchash](https://github.com/etclabscore/go-etchash)
   - [RavencoinCommunity: cpp-kawpow](https://github.com/RavenCommunity/cpp-kawpow/)
   - [Zcash: librustzcash (equihash)](https://github.com/zcash/librustzcash/tree/master/components/equihash)
   - [Gert-Jaap Glasbergen: verthash-go](https://github.com/gertjaap/verthash-go/)
+  - [Firo: firo](https://github.com/firoorg/firo/tree/master/src/crypto/progpow)
