@@ -17,7 +17,7 @@
 package dag
 
 import (
-	"github.com/sencha-dev/go-pow/internal/common"
+	"github.com/sencha-dev/powkit/internal/common"
 )
 
 const (

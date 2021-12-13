@@ -3,8 +3,8 @@ package firopow
 import (
 	"runtime"
 
-	"github.com/sencha-dev/go-pow/internal/crypto"
-	"github.com/sencha-dev/go-pow/internal/dag"
+	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 type Firopow struct {

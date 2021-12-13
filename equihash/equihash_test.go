@@ -3,7 +3,7 @@ package equihash
 import (
 	"testing"
 
-	"github.com/sencha-dev/go-pow/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/common/testutil"
 )
 
 func TestSimple(t *testing.T) {

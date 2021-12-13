@@ -7,9 +7,9 @@ package firopow
 import (
 	"encoding/binary"
 
-	"github.com/sencha-dev/go-pow/internal/common/convutil"
-	"github.com/sencha-dev/go-pow/internal/crypto"
-	"github.com/sencha-dev/go-pow/internal/progpow"
+	"github.com/sencha-dev/powkit/internal/common/convutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/progpow"
 )
 
 func firopow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {

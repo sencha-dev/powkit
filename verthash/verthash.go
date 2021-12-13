@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sencha-dev/go-pow/internal/common"
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/common"
+	"github.com/sencha-dev/powkit/internal/crypto"
 
 	"golang.org/x/crypto/sha3"
 )

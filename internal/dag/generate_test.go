@@ -20,9 +20,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sencha-dev/go-pow/internal/common/convutil"
-	"github.com/sencha-dev/go-pow/internal/common/testutil"
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/common/convutil"
+	"github.com/sencha-dev/powkit/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
 func TestCacheGeneration(t *testing.T) {

@@ -7,9 +7,9 @@ package kawpow
 import (
 	"encoding/binary"
 
-	"github.com/sencha-dev/go-pow/internal/common/convutil"
-	"github.com/sencha-dev/go-pow/internal/crypto"
-	"github.com/sencha-dev/go-pow/internal/progpow"
+	"github.com/sencha-dev/powkit/internal/common/convutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/progpow"
 )
 
 var ravencoinKawpow [15]uint32 = [15]uint32{

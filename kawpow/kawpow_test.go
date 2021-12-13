@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/sencha-dev/go-pow/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/common/testutil"
 )
 
 func TestComputeRavencoin(t *testing.T) {

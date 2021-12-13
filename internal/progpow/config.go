@@ -1,7 +1,7 @@
 package progpow
 
 import (
-	"github.com/sencha-dev/go-pow/internal/dag"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 type Config struct {

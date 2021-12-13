@@ -3,7 +3,7 @@ package equihash
 import (
 	"encoding/hex"
 
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
 // @TODO: make sure zcash works from https://github.com/str4d/zcash-pow

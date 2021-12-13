@@ -19,7 +19,7 @@ package dag
 import (
 	"math/big"
 
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
 func CalcEpoch(cfg *Config, height uint64) uint64 {

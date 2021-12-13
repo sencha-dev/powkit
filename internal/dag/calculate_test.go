@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sencha-dev/go-pow/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/common/testutil"
 )
 
 func TestEpochNumber(t *testing.T) {

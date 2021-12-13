@@ -1,4 +1,3 @@
-// Copyright 2019 Victor Tran
 // Copyright 2017 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -20,7 +19,7 @@ package ethash
 import (
 	"encoding/binary"
 
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
 const (

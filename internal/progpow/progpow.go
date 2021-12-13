@@ -7,9 +7,9 @@ package progpow
 import (
 	"encoding/binary"
 
-	"github.com/sencha-dev/go-pow/internal/common/convutil"
-	"github.com/sencha-dev/go-pow/internal/crypto"
-	"github.com/sencha-dev/go-pow/internal/dag"
+	"github.com/sencha-dev/powkit/internal/common/convutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 const (

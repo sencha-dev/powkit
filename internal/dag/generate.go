@@ -21,8 +21,8 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/sencha-dev/go-pow/internal/common/bitutil"
-	"github.com/sencha-dev/go-pow/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/common/bitutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
 // generateCache creates a verification cache of a given size for an input seed.
