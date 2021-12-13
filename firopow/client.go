@@ -34,7 +34,7 @@ func (e *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 		return dag.GenerateDatasetItem2048(e.cfg, cache.Cache(), index, keccak512Hasher)
 	}
 
-	mix, digest := firopow(hash, height, nonce, lookup, cache.L1())
+	mix, digest := compute(hash, height, nonce, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
 	return mix, digest

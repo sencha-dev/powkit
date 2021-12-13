@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package kawpow
+package progpow
 
 import (
 	"runtime"
@@ -23,13 +23,13 @@ import (
 	"github.com/sencha-dev/powkit/internal/dag"
 )
 
-type Kawpow struct {
+type Progpow struct {
 	dag *dag.LightDAG
 	cfg *dag.Config
 }
 
-func New(cfg *dag.Config) *Kawpow {
-	client := &Kawpow{
+func New(cfg *dag.Config) *Progpow {
+	client := &Progpow{
 		dag: dag.NewLightDAG(cfg),
 		cfg: cfg,
 	}
@@ -37,11 +37,11 @@ func New(cfg *dag.Config) *Kawpow {
 	return client
 }
 
-func NewRavencoin() *Kawpow {
-	return New(dag.RavencoinCfg)
+func NewProgpow094() *Progpow {
+	return New(dag.Progpow094Cfg)
 }
 
-func (e *Kawpow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
+func (e *Progpow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := dag.CalcEpoch(e.cfg, height)
 	cache := e.dag.GetCache(epoch)
 

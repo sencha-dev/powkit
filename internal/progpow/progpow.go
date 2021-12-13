@@ -5,8 +5,6 @@
 package progpow
 
 import (
-	"encoding/binary"
-
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
@@ -21,22 +19,6 @@ const (
 type mixArray [progpowLanes][progpowRegs]uint32
 
 type lookupFunc func(index uint32) []uint32
-
-func progpowSeed(hash []byte, nonce uint64) uint64 {
-	var tempState [25]uint32
-	for i := 0; i < 8; i += 1 {
-		tempState[i] = binary.LittleEndian.Uint32(hash[i*4 : i*4+4])
-	}
-
-	tempState[8] = uint32(nonce)
-	tempState[9] = uint32(nonce >> 32)
-
-	crypto.KeccakF800(&tempState)
-
-	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
-
-	return seedHead
-}
 
 func initMix(seed uint64) mixArray {
 	z := crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
