@@ -15,7 +15,7 @@ func newKiss99(z, w, jsr, jcong uint32) *kiss99 {
 	return &kiss99{z, w, jsr, jcong}
 }
 
-func (k *kiss99) Next() uint32 {
+func (k *kiss99) next() uint32 {
 	k.z = 36969*(k.z&65535) + (k.z >> 16)
 	k.w = 18000*(k.w&65535) + (k.w >> 16)
 

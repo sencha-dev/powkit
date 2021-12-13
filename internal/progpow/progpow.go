@@ -11,76 +11,75 @@ import (
 
 const (
 	fnvOffsetBasis uint32 = 0x811c9dc5
-	progpowRegs    uint32 = 32
-	progpowLanes   uint32 = 16
 )
 
 type Config struct {
 	PeriodLength        uint64
 	DagLoads            int
 	CacheBytes          uint32
+	LaneCount           int
+	RegisterCount       int
 	RoundCount          int
 	RoundCacheAccesses  int
 	RoundMathOperations int
 }
 
-type mixArray [progpowLanes][progpowRegs]uint32
-
 type lookupFunc func(index uint32) []uint32
 
-func initMix(seed uint64) mixArray {
+func initMix(seed uint64, numLanes, numRegs int) [][]uint32 {
 	z := crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
 	w := crypto.Fnv1a(z, uint32(seed>>32))
 
-	var mix mixArray
-	for l := range mix {
-		jsr := crypto.Fnv1a(w, uint32(l))
-		jcong := crypto.Fnv1a(jsr, uint32(l))
+	mix := make([][]uint32, numLanes)
+	for lane := range mix {
+		jsr := crypto.Fnv1a(w, uint32(lane))
+		jcong := crypto.Fnv1a(jsr, uint32(lane))
 
 		rng := newKiss99(z, w, jsr, jcong)
 
-		for r := range mix[l] {
-			mix[l][r] = rng.Next()
+		mix[lane] = make([]uint32, numRegs)
+		for reg := range mix[lane] {
+			mix[lane][reg] = rng.next()
 		}
 	}
 
 	return mix
 }
 
-func round(cfg *Config, seed uint64, r uint32, mix mixArray, datasetSize uint64, lookup lookupFunc, l1 []uint32) mixArray {
-	state := initMixRngState(seed)
+func round(cfg *Config, seed uint64, r uint32, mix [][]uint32, datasetSize uint64, lookup lookupFunc, l1 []uint32) [][]uint32 {
+	state := initMixRngState(seed, uint32(cfg.RegisterCount))
 	numItems := uint32(datasetSize / (2 * 128))
-	itemIndex := mix[r%progpowLanes][0] % numItems
+	itemIndex := mix[r%uint32(cfg.LaneCount)][0] % numItems
 
 	item := lookup(itemIndex)
 
-	numWordsPerLane := len(item) / int(progpowLanes)
+	numWordsPerLane := len(item) / cfg.LaneCount
 	maxOperations := max(cfg.RoundCacheAccesses, cfg.RoundMathOperations)
 	for i := 0; i < maxOperations; i++ {
 		if i < cfg.RoundCacheAccesses {
 			src := state.nextSrc()
 			dst := state.nextDst()
-			sel := state.Rng.Next()
+			sel := state.nextRng()
 
-			for l := 0; l < int(progpowLanes); l++ {
+			for l := 0; l < cfg.LaneCount; l++ {
 				offset := mix[l][src] % (cfg.CacheBytes / 4)
 				mix[l][dst] = randomMerge(mix[l][dst], l1[offset], sel)
 			}
 		}
 
 		if i < cfg.RoundMathOperations {
-			srcRand := state.Rng.Next() % (progpowRegs * (progpowRegs - 1))
-			src1 := srcRand % progpowRegs
-			src2 := srcRand / progpowRegs
+			srcRand := state.nextRng() % (uint32(cfg.RegisterCount) * uint32(cfg.RegisterCount-1))
+			src1 := srcRand % uint32(cfg.RegisterCount)
+			src2 := srcRand / uint32(cfg.RegisterCount)
 			if src2 >= src1 {
 				src2 += 1
 			}
 
-			sel1 := state.Rng.Next()
+			sel1 := state.nextRng()
 			dst := state.nextDst()
-			sel2 := state.Rng.Next()
+			sel2 := state.nextRng()
 
-			for l := 0; l < int(progpowLanes); l++ {
+			for l := 0; l < cfg.LaneCount; l++ {
 				data := randomMath(mix[l][src1], mix[l][src2], sel1)
 				mix[l][dst] = randomMerge(mix[l][dst], data, sel2)
 			}
@@ -97,11 +96,11 @@ func round(cfg *Config, seed uint64, r uint32, mix mixArray, datasetSize uint64,
 			dsts[i] = state.nextDst()
 		}
 
-		sels[i] = state.Rng.Next()
+		sels[i] = state.nextRng()
 	}
 
-	for l := 0; l < int(progpowLanes); l++ {
-		offset := ((uint32(l) ^ r) % progpowLanes) * uint32(numWordsPerLane)
+	for l := 0; l < cfg.LaneCount; l++ {
+		offset := ((uint32(l) ^ r) % uint32(cfg.LaneCount)) * uint32(numWordsPerLane)
 		for i := 0; i < numWordsPerLane; i++ {
 			word := item[offset+uint32(i)]
 			mix[l][dsts[i]] = randomMerge(mix[l][dsts[i]], word, sels[i])
@@ -112,18 +111,18 @@ func round(cfg *Config, seed uint64, r uint32, mix mixArray, datasetSize uint64,
 }
 
 func HashMix(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l1 []uint32) []byte {
-	mix := initMix(seed)
+	mix := initMix(seed, cfg.LaneCount, cfg.RegisterCount)
 
 	number := height / cfg.PeriodLength
 	for i := 0; i < cfg.RoundCount; i++ {
 		mix = round(cfg, number, uint32(i), mix, datasetSize, lookup, l1)
 	}
 
-	var laneHash [progpowLanes]uint32
-	for l := 0; l < int(progpowLanes); l++ {
+	laneHash := make([]uint32, cfg.LaneCount)
+	for l := range laneHash {
 		laneHash[l] = fnvOffsetBasis
 
-		for i := 0; i < int(progpowRegs); i++ {
+		for i := 0; i < cfg.RegisterCount; i++ {
 			laneHash[l] = crypto.Fnv1a(laneHash[l], mix[l][i])
 		}
 	}
@@ -134,7 +133,7 @@ func HashMix(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l
 		mixHash[i] = fnvOffsetBasis
 	}
 
-	for l := 0; l < int(progpowLanes); l++ {
+	for l := 0; l < cfg.LaneCount; l++ {
 		mixHash[l%numWords] = crypto.Fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 

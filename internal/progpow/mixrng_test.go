@@ -9,54 +9,79 @@ import (
 )
 
 func TestInitMixRngState(t *testing.T) {
-	const period uint64 = 50
-	const height uint64 = 30000
-
-	expectedSrc := []byte{
-		0x1A, 0x1E, 0x01, 0x13, 0x0B, 0x15, 0x0F, 0x12,
-		0x03, 0x11, 0x1F, 0x10, 0x1C, 0x04, 0x16, 0x17,
-		0x02, 0x0D, 0x1D, 0x18, 0x0A, 0x0C, 0x05, 0x14,
-		0x07, 0x08, 0x0E, 0x1B, 0x06, 0x19, 0x09, 0x00,
+	tests := []struct {
+		number uint64
+		size   uint32
+		src    []byte
+		dst    []byte
+		z      uint32
+		w      uint32
+		jsr    uint32
+		jcong  uint32
+	}{
+		{
+			number: 30000 / 50,
+			size:   32,
+			src: []byte{
+				0x1A, 0x1E, 0x01, 0x13, 0x0B, 0x15, 0x0F, 0x12,
+				0x03, 0x11, 0x1F, 0x10, 0x1C, 0x04, 0x16, 0x17,
+				0x02, 0x0D, 0x1D, 0x18, 0x0A, 0x0C, 0x05, 0x14,
+				0x07, 0x08, 0x0E, 0x1B, 0x06, 0x19, 0x09, 0x00,
+			},
+			dst: []byte{
+				0x00, 0x04, 0x1B, 0x1A, 0x0D, 0x0F, 0x11, 0x07,
+				0x0E, 0x08, 0x09, 0x0C, 0x03, 0x0A, 0x01, 0x0B,
+				0x06, 0x10, 0x1C, 0x1F, 0x02, 0x13, 0x1E, 0x16,
+				0x1D, 0x05, 0x18, 0x12, 0x19, 0x17, 0x15, 0x14,
+			},
+			z:     0x6535921C,
+			w:     0x29345B16,
+			jsr:   0xC0DD7F78,
+			jcong: 0x1165D7EB,
+		},
 	}
 
-	expectedDst := []byte{
-		0x00, 0x04, 0x1B, 0x1A, 0x0D, 0x0F, 0x11, 0x07,
-		0x0E, 0x08, 0x09, 0x0C, 0x03, 0x0A, 0x01, 0x0B,
-		0x06, 0x10, 0x1C, 0x1F, 0x02, 0x13, 0x1E, 0x16,
-		0x1D, 0x05, 0x18, 0x12, 0x19, 0x17, 0x15, 0x14,
-	}
+	for i, tt := range tests {
+		state := initMixRngState(tt.number, tt.size)
 
-	const expectedZ uint32 = 0x6535921C
-	const expectedW uint32 = 0x29345B16
-	const expectedJsr uint32 = 0xC0DD7F78
-	const expectedJcong uint32 = 0x1165D7EB
-
-	number := height / period
-	state := initMixRngState(number)
-
-	for i := 0; i < len(expectedSrc); i++ {
-		if state.SrcSeq[i] != uint32(expectedSrc[i]) {
-			t.Errorf("failed initMixRngState test for SrcSeq value at index %d", i)
+		if len(state.srcSequence) != len(tt.src) {
+			t.Errorf("failed on %d: srcSequence length mismatch: have %d, want %d",
+				i, len(state.srcSequence), len(tt.src))
+		} else {
+			for j := 0; j < len(state.srcSequence); j++ {
+				if state.srcSequence[j] != uint32(tt.src[j]) {
+					t.Errorf("failed on %d: srcSequence mismatch (%d): have %x, want %x",
+						i, j, state.srcSequence[j], tt.src[j])
+				}
+			}
 		}
 
-		if state.DstSeq[i] != uint32(expectedDst[i]) {
-			t.Errorf("failed initMixRngState test for DstSeq value at index %d", i)
+		if len(state.dstSequence) != len(tt.dst) {
+			t.Errorf("failed on %d: dstSequence length mismatch: have %d, want %d",
+				i, len(state.dstSequence), len(tt.dst))
+		} else {
+			for j := 0; j < len(state.srcSequence); j++ {
+				if state.dstSequence[j] != uint32(tt.dst[j]) {
+					t.Errorf("failed on %d: dstSequence mismatch (%d): have %x, want %x",
+						i, j, state.dstSequence[j], tt.dst[j])
+				}
+			}
 		}
-	}
 
-	if state.Rng.z != expectedZ {
-		t.Errorf("failed initMixRngState test for Rng value z")
-	}
+		if state.rng.z != tt.z {
+			t.Errorf("failed on %d: z mismatch: have %d, want %d", i, state.rng.z, tt.z)
+		}
 
-	if state.Rng.w != expectedW {
-		t.Errorf("failed initMixRngState test for Rng value w")
-	}
+		if state.rng.w != tt.w {
+			t.Errorf("failed on %d: w mismatch: have %d, want %d", i, state.rng.w, tt.w)
+		}
 
-	if state.Rng.jsr != expectedJsr {
-		t.Errorf("failed initMixRngState test for Rng value jsr")
-	}
+		if state.rng.jsr != tt.jsr {
+			t.Errorf("failed on %d: jsr mismatch: have %d, want %d", i, state.rng.jsr, tt.jsr)
+		}
 
-	if state.Rng.jcong != expectedJcong {
-		t.Errorf("failed initMixRngState test for Rng value jcong")
+		if state.rng.jcong != tt.jcong {
+			t.Errorf("failed on %d: jcong mismatch: have %d, want %d", i, state.rng.jcong, tt.jcong)
+		}
 	}
 }

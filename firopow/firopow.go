@@ -52,6 +52,8 @@ func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index u
 		PeriodLength:        1,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
+		LaneCount:           16,
+		RegisterCount:       32,
 		RoundCount:          64,
 		RoundCacheAccesses:  11,
 		RoundMathOperations: 18,

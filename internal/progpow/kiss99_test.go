@@ -9,27 +9,66 @@ import (
 )
 
 func TestKiss99(t *testing.T) {
-	var z, w, jsr, jcong uint32
-	z, w = 362436069, 521288629
-	jsr, jcong = 123456789, 380116160
-
-	results := map[int]uint32{
-		1:      769445856,
-		2:      742012328,
-		3:      2121196314,
-		4:      2805620942,
-		100000: 941074834,
+	tests := []struct {
+		z     uint32
+		w     uint32
+		jsr   uint32
+		jcong uint32
+		index int
+		value uint32
+	}{
+		{
+			z:     362436069,
+			w:     521288629,
+			jsr:   123456789,
+			jcong: 380116160,
+			index: 1,
+			value: 769445856,
+		},
+		{
+			z:     362436069,
+			w:     521288629,
+			jsr:   123456789,
+			jcong: 380116160,
+			index: 2,
+			value: 742012328,
+		},
+		{
+			z:     362436069,
+			w:     521288629,
+			jsr:   123456789,
+			jcong: 380116160,
+			index: 3,
+			value: 2121196314,
+		},
+		{
+			z:     362436069,
+			w:     521288629,
+			jsr:   123456789,
+			jcong: 380116160,
+			index: 4,
+			value: 2805620942,
+		},
+		{
+			z:     362436069,
+			w:     521288629,
+			jsr:   123456789,
+			jcong: 380116160,
+			index: 100000,
+			value: 941074834,
+		},
 	}
 
-	kiss := newKiss99(z, w, jsr, jcong)
+	for i, tt := range tests {
+		rng := newKiss99(tt.z, tt.w, tt.jsr, tt.jcong)
 
-	for i := 1; i < 100001; i++ {
-		actual := kiss.Next()
+		var value uint32
+		for i := 0; i < tt.index; i++ {
+			value = rng.next()
+		}
 
-		if expected, ok := results[i]; ok {
-			if actual != expected {
-				t.Errorf("failed Kiss99 test on iteration %d", i)
-			}
+		if value != tt.value {
+			t.Errorf("failed on %d: have %d, want %d", i, value, tt.value)
 		}
 	}
 }

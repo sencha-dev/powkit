@@ -9,28 +9,33 @@ import (
 )
 
 type mixRngState struct {
-	SrcCounter uint32
-	DstCounter uint32
-	SrcSeq     [progpowRegs]uint32
-	DstSeq     [progpowRegs]uint32
-	Rng        *kiss99
-}
-
-func (s *mixRngState) nextDst() uint32 {
-	val := s.DstSeq[s.DstCounter%progpowRegs]
-	s.DstCounter++
-
-	return val
+	size        uint32
+	srcCounter  uint32
+	dstCounter  uint32
+	srcSequence []uint32
+	dstSequence []uint32
+	rng         *kiss99
 }
 
 func (s *mixRngState) nextSrc() uint32 {
-	val := s.SrcSeq[s.SrcCounter%progpowRegs]
-	s.SrcCounter++
+	val := s.srcSequence[s.srcCounter%s.size]
+	s.srcCounter++
 
 	return val
 }
 
-func initMixRngState(seed uint64) *mixRngState {
+func (s *mixRngState) nextDst() uint32 {
+	val := s.dstSequence[s.dstCounter%s.size]
+	s.dstCounter++
+
+	return val
+}
+
+func (s *mixRngState) nextRng() uint32 {
+	return s.rng.next()
+}
+
+func initMixRngState(seed uint64, size uint32) *mixRngState {
 	var z, w, jsr, jcong uint32
 
 	z = crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
@@ -40,22 +45,29 @@ func initMixRngState(seed uint64) *mixRngState {
 
 	rng := newKiss99(z, w, jsr, jcong)
 
-	var srcSeq [progpowRegs]uint32
-	var dstSeq [progpowRegs]uint32
-
-	var i uint32
-	for i = 0; i < progpowRegs; i++ {
+	srcSeq := make([]uint32, size)
+	dstSeq := make([]uint32, size)
+	for i := uint32(0); i < size; i++ {
 		dstSeq[i] = i
 		srcSeq[i] = i
 	}
 
-	for i = progpowRegs; i > 1; i-- {
-		dstInd := rng.Next() % i
+	for i := size; i > 1; i-- {
+		dstInd := rng.next() % i
 		dstSeq[i-1], dstSeq[dstInd] = dstSeq[dstInd], dstSeq[i-1]
 
-		srcInd := rng.Next() % i
+		srcInd := rng.next() % i
 		srcSeq[i-1], srcSeq[srcInd] = srcSeq[srcInd], srcSeq[i-1]
 	}
 
-	return &mixRngState{0, 0, srcSeq, dstSeq, rng}
+	state := &mixRngState{
+		size:        size,
+		srcCounter:  0,
+		dstCounter:  0,
+		srcSequence: srcSeq,
+		dstSequence: dstSeq,
+		rng:         rng,
+	}
+
+	return state
 }
