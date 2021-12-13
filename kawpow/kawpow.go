@@ -7,6 +7,7 @@ package kawpow
 import (
 	"encoding/binary"
 
+	"github.com/sencha-dev/go-pow/internal/common/convutil"
 	"github.com/sencha-dev/go-pow/internal/crypto"
 	"github.com/sencha-dev/go-pow/internal/progpow"
 )
@@ -29,7 +30,7 @@ var ravencoinKawpow [15]uint32 = [15]uint32{
 	0x00000057, //W
 }
 
-func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
+func kawpow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
 	// temporary initialization state
 	var tempState [25]uint32
 	for i := 0; i < 8; i += 1 {
@@ -47,7 +48,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 
 	// mixhash
 	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
-	mixHash := progpow.HashMix(progpow.Kawpow, height, seedHead, l1, lookup)
+	mixHash := progpow.HashMix(progpow.Kawpow, height, seedHead, lookup, l1)
 
 	// final hashed digest
 	var state [25]uint32
@@ -63,7 +64,7 @@ func kawpow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index ui
 
 	crypto.KeccakF800(&state)
 
-	digest := uint32ArrayToBytes(state[:8])
+	digest := convutil.Uint32ArrayToBytes(state[:8])
 
 	return mixHash, digest
 }

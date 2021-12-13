@@ -2,20 +2,8 @@ package equihash
 
 import (
 	"encoding/binary"
-	"encoding/hex"
-	"strings"
 	"unsafe"
 )
-
-func mustDecodeHex(inp string) []byte {
-	inp = strings.Replace(inp, "0x", "", -1)
-	out, err := hex.DecodeString(inp)
-	if err != nil {
-		panic(err)
-	}
-
-	return out
-}
 
 func isLittleEndian() bool {
 	n := uint32(0x01020304)

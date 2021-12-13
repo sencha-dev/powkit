@@ -13,6 +13,15 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+func log2(x int64) int64 {
+	r := int64(0)
+	for ; x > 1; x >>= 1 {
+		r++
+	}
+
+	return r
+}
+
 type node struct {
 	H []byte // hash at the file
 }

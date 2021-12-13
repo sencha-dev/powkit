@@ -7,6 +7,7 @@ package progpow
 import (
 	"encoding/binary"
 
+	"github.com/sencha-dev/go-pow/internal/common/convutil"
 	"github.com/sencha-dev/go-pow/internal/crypto"
 	"github.com/sencha-dev/go-pow/internal/dag"
 )
@@ -56,7 +57,7 @@ func initMix(seed uint64) mixArray {
 	return mix
 }
 
-func round(cfg *Config, l1 []uint32, datasetSize, seed uint64, r uint32, mix mixArray, lookup lookupFunc) mixArray {
+func round(cfg *Config, seed uint64, r uint32, mix mixArray, datasetSize uint64, lookup lookupFunc, l1 []uint32) mixArray {
 	state := initMixRngState(seed)
 	numItems := uint32(datasetSize / (2 * 128))
 	itemIndex := mix[r%progpowLanes][0] % numItems
@@ -120,15 +121,15 @@ func round(cfg *Config, l1 []uint32, datasetSize, seed uint64, r uint32, mix mix
 	return mix
 }
 
-func HashMix(cfg *Config, height, seed uint64, l1 []uint32, lookup lookupFunc) []byte {
+func HashMix(cfg *Config, height, seed uint64, lookup lookupFunc, l1 []uint32) []byte {
 	mix := initMix(seed)
 
 	number := height / cfg.PeriodLength
-	epoch := dag.CalcEpoch(height, cfg.EpochLength)
-	datasetSize := dag.DatasetSize(epoch)
+	epoch := dag.CalcEpoch(cfg.DagCfg, height)
+	datasetSize := dag.DatasetSize(cfg.DagCfg, epoch)
 
 	for i := 0; i < cfg.RoundCount; i++ {
-		mix = round(cfg, l1, datasetSize, number, uint32(i), mix, lookup)
+		mix = round(cfg, number, uint32(i), mix, datasetSize, lookup, l1)
 	}
 
 	var laneHash [progpowLanes]uint32
@@ -150,5 +151,5 @@ func HashMix(cfg *Config, height, seed uint64, l1 []uint32, lookup lookupFunc) [
 		mixHash[l%numWords] = crypto.Fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
-	return uint32ArrayToBytes(mixHash)
+	return convutil.Uint32ArrayToBytes(mixHash)
 }

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package kawpow
+package ethash
 
 import (
 	"runtime"
@@ -24,13 +24,13 @@ import (
 	"github.com/sencha-dev/go-pow/internal/dag"
 )
 
-type Kawpow struct {
+type Ethash struct {
 	dag *dag.LightDAG
 	cfg *dag.Config
 }
 
-func New(cfg *dag.Config) *Kawpow {
-	client := &Kawpow{
+func New(cfg *dag.Config) *Ethash {
+	client := &Ethash{
 		dag: dag.NewLightDAG(cfg),
 		cfg: cfg,
 	}
@@ -38,20 +38,25 @@ func New(cfg *dag.Config) *Kawpow {
 	return client
 }
 
-func NewRavencoin() *Kawpow {
-	return New(dag.RavencoinCfg)
+func NewEthereum() *Ethash {
+	return New(dag.EthereumCfg)
 }
 
-func (e *Kawpow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
+func NewEthereumClassic() *Ethash {
+	return New(dag.EthereumClassicCfg)
+}
+
+func (e *Ethash) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := dag.CalcEpoch(e.cfg, height)
+	size := dag.DatasetSize(e.cfg, epoch)
 	cache := e.dag.GetCache(epoch)
 
 	keccak512Hasher := crypto.NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return dag.GenerateDatasetItem2048(e.cfg, cache.Cache(), index, keccak512Hasher)
+		return dag.GenerateDatasetItem512(e.cfg, cache.Cache(), index, keccak512Hasher)
 	}
 
-	mix, digest := kawpow(hash, height, nonce, lookup, cache.L1())
+	mix, digest := hashimoto(hash, nonce, size, lookup)
 	runtime.KeepAlive(cache)
 
 	return mix, digest

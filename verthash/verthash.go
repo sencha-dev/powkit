@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sencha-dev/go-pow/internal/common"
 	"github.com/sencha-dev/go-pow/internal/crypto"
 
 	"golang.org/x/crypto/sha3"
@@ -18,7 +19,7 @@ type Verthash struct {
 }
 
 func New(inMemory bool) (*Verthash, error) {
-	path := filepath.Join(defaultDir(), "verthash.dat")
+	path := filepath.Join(common.DefaultDir(".powcache"), "verthash.dat")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		writeGraph(path)
 	}

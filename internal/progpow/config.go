@@ -1,7 +1,11 @@
 package progpow
 
+import (
+	"github.com/sencha-dev/go-pow/internal/dag"
+)
+
 type Config struct {
-	EpochLength         uint64
+	DagCfg              *dag.Config
 	PeriodLength        uint64
 	DagLoads            int
 	CacheBytes          uint32
@@ -12,7 +16,7 @@ type Config struct {
 
 var (
 	ProgPow092 = &Config{
-		EpochLength:         30000,
+		DagCfg:              dag.Progpow092Cfg,
 		PeriodLength:        50,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -22,7 +26,7 @@ var (
 	}
 
 	ProgPow093 = &Config{
-		EpochLength:         30000,
+		DagCfg:              dag.Progpow093Cfg,
 		PeriodLength:        10,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -32,7 +36,7 @@ var (
 	}
 
 	ProgPow094 = &Config{
-		EpochLength:         30000,
+		DagCfg:              dag.Progpow094Cfg,
 		PeriodLength:        10,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -42,7 +46,7 @@ var (
 	}
 
 	Kawpow = &Config{
-		EpochLength:         7500,
+		DagCfg:              dag.RavencoinCfg,
 		PeriodLength:        3,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -52,7 +56,7 @@ var (
 	}
 
 	Firopow = &Config{
-		EpochLength:         1300,
+		DagCfg:              dag.FiroCfg,
 		PeriodLength:        1,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
