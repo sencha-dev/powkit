@@ -2,7 +2,7 @@
 
 Kawpow is a variation of ProgPow that uses modified Ethash DAG parameters,
 modified ProgPow parameters, and a variation on the ProgPow initialization
-state and digest state.
+and finalization functions.
 
 ## Modified Ethash Parameters
 
