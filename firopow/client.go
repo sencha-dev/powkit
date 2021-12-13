@@ -8,36 +8,33 @@ import (
 )
 
 type Firopow struct {
-	epochLength uint64
-	dag         *dag.LightDag
+	dag *dag.LightDAG
+	cfg *dag.Config
 }
 
-func New(name string, epochLength uint64) *Firopow {
+func New(cfg *dag.Config) *Firopow {
 	client := &Firopow{
-		epochLength: epochLength,
-		dag: &dag.LightDag{
-			Name:            name,
-			EpochLength:     epochLength,
-			SeedEpochLength: epochLength,
-			DatasetParents:  512,
-			NumCaches:       3,
-			NeedsL1:         true,
-		},
+		dag: dag.NewLightDAG(cfg),
+		cfg: cfg,
 	}
 
 	return client
 }
 
-func (k *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := dag.CalcEpoch(height, k.epochLength)
-	cache := k.dag.GetCache(epoch)
+func NewFiro() *Firopow {
+	return New(dag.FiroCfg)
+}
+
+func (e *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
+	epoch := dag.CalcEpoch(e.cfg, height)
+	cache := e.dag.GetCache(epoch)
 
 	keccak512Hasher := crypto.NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return dag.GenerateDatasetItem2048(cache.Cache(), index, keccak512Hasher, k.dag.DatasetParents)
+		return dag.GenerateDatasetItem2048(e.cfg, cache.Cache(), index, keccak512Hasher)
 	}
 
-	mix, digest := firopow(cache.L1(), hash, height, nonce, lookup)
+	mix, digest := firopow(hash, height, nonce, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
 	return mix, digest

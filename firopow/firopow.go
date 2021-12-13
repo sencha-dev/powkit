@@ -6,32 +6,13 @@ package firopow
 
 import (
 	"encoding/binary"
-	"unsafe"
 
+	"github.com/sencha-dev/go-pow/internal/common/convutil"
 	"github.com/sencha-dev/go-pow/internal/crypto"
 	"github.com/sencha-dev/go-pow/internal/progpow"
 )
 
-func isLittleEndian() bool {
-	n := uint32(0x01020304)
-	return *(*byte)(unsafe.Pointer(&n)) == 0x04
-}
-
-func uint32ArrayToBytes(c []uint32) []byte {
-	buf := make([]byte, len(c)*4)
-	if isLittleEndian() {
-		for i, v := range c {
-			binary.LittleEndian.PutUint32(buf[i*4:], v)
-		}
-	} else {
-		for i, v := range c {
-			binary.BigEndian.PutUint32(buf[i*4:], v)
-		}
-	}
-	return buf
-}
-
-func firopow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index uint32) []uint32) ([]byte, []byte) {
+func firopow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
 	// temporary initialization state
 	var tempState [25]uint32
 	for i := 0; i < 8; i += 1 {
@@ -45,9 +26,9 @@ func firopow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index u
 
 	// mixhash
 	crypto.KeccakF800(&tempState)
-
 	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
-	mixHash := progpow.HashMix(progpow.Firopow, height, seedHead, l1, lookup)
+
+	mixHash := progpow.HashMix(progpow.Firopow, height, seedHead, lookup, l1)
 
 	// final hashed digest
 	var state [25]uint32
@@ -61,7 +42,7 @@ func firopow(l1 []uint32, hash []byte, height, nonce uint64, lookup func(index u
 
 	crypto.KeccakF800(&state)
 
-	digest := uint32ArrayToBytes(state[:8])
+	digest := convutil.Uint32ArrayToBytes(state[:8])
 
 	return mixHash, digest
 }
