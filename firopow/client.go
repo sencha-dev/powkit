@@ -27,6 +27,7 @@ func NewFiro() *Firopow {
 
 func (e *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := dag.CalcEpoch(e.cfg, height)
+	datasetSize := dag.DatasetSize(e.cfg, epoch)
 	cache := e.dag.GetCache(epoch)
 
 	keccak512Hasher := crypto.NewKeccak512Hasher()
@@ -34,7 +35,7 @@ func (e *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 		return dag.GenerateDatasetItem2048(e.cfg, cache.Cache(), index, keccak512Hasher)
 	}
 
-	mix, digest := compute(hash, height, nonce, lookup, cache.L1())
+	mix, digest := compute(hash, height, nonce, datasetSize, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
 	return mix, digest

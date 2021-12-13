@@ -42,9 +42,9 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 	return digest
 }
 
-func compute(hash []byte, height, nonce uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
+func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
 	seed, seedHead := initialize(hash, nonce)
-	mixHash := progpow.HashMix(progpow.ProgPow094, height, seedHead, lookup, l1)
+	mixHash := progpow.HashMix(progpow.ProgPow094, height, seedHead, datasetSize, lookup, l1)
 	digest := finalize(seed, mixHash)
 
 	return mixHash, digest

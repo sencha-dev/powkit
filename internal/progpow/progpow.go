@@ -7,7 +7,6 @@ package progpow
 import (
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
-	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 const (
@@ -103,13 +102,10 @@ func round(cfg *Config, seed uint64, r uint32, mix mixArray, datasetSize uint64,
 	return mix
 }
 
-func HashMix(cfg *Config, height, seed uint64, lookup lookupFunc, l1 []uint32) []byte {
+func HashMix(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l1 []uint32) []byte {
 	mix := initMix(seed)
 
 	number := height / cfg.PeriodLength
-	epoch := dag.CalcEpoch(cfg.DagCfg, height)
-	datasetSize := dag.DatasetSize(cfg.DagCfg, epoch)
-
 	for i := 0; i < cfg.RoundCount; i++ {
 		mix = round(cfg, number, uint32(i), mix, datasetSize, lookup, l1)
 	}

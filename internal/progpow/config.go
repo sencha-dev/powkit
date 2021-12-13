@@ -1,11 +1,6 @@
 package progpow
 
-import (
-	"github.com/sencha-dev/powkit/internal/dag"
-)
-
 type Config struct {
-	DagCfg              *dag.Config
 	PeriodLength        uint64
 	DagLoads            int
 	CacheBytes          uint32
@@ -16,7 +11,6 @@ type Config struct {
 
 var (
 	ProgPow092 = &Config{
-		DagCfg:              dag.Progpow092Cfg,
 		PeriodLength:        50,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -26,7 +20,6 @@ var (
 	}
 
 	ProgPow093 = &Config{
-		DagCfg:              dag.Progpow093Cfg,
 		PeriodLength:        10,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -36,7 +29,6 @@ var (
 	}
 
 	ProgPow094 = &Config{
-		DagCfg:              dag.Progpow094Cfg,
 		PeriodLength:        10,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -46,7 +38,6 @@ var (
 	}
 
 	Kawpow = &Config{
-		DagCfg:              dag.RavencoinCfg,
 		PeriodLength:        3,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -56,7 +47,6 @@ var (
 	}
 
 	Firopow = &Config{
-		DagCfg:              dag.FiroCfg,
 		PeriodLength:        1,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
