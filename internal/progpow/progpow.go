@@ -15,6 +15,15 @@ const (
 	progpowLanes   uint32 = 16
 )
 
+type Config struct {
+	PeriodLength        uint64
+	DagLoads            int
+	CacheBytes          uint32
+	RoundCount          int
+	RoundCacheAccesses  int
+	RoundMathOperations int
+}
+
 type mixArray [progpowLanes][progpowRegs]uint32
 
 type lookupFunc func(index uint32) []uint32

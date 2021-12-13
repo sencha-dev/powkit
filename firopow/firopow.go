@@ -48,8 +48,17 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 }
 
 func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
+	cfg := &progpow.Config{
+		PeriodLength:        1,
+		DagLoads:            4,
+		CacheBytes:          16 * 1024,
+		RoundCount:          64,
+		RoundCacheAccesses:  11,
+		RoundMathOperations: 18,
+	}
+
 	seed, seedHead := initialize(hash, nonce)
-	mixHash := progpow.HashMix(progpow.Firopow, height, seedHead, datasetSize, lookup, l1)
+	mixHash := progpow.HashMix(cfg, height, seedHead, datasetSize, lookup, l1)
 	digest := finalize(seed, mixHash)
 
 	return mixHash, digest
