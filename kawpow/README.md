@@ -13,6 +13,6 @@ and finalization functions.
 
   - `PeriodLength`: 3
 
-## Modified Progpow States
+## Modified Progpow Functions
 
 These are a bit more complex, but should be clear in [kawpow.go](./kawpow.go).
