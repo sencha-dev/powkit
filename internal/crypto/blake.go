@@ -21,3 +21,8 @@ func Blake2b(inp, personal []byte, size int) []byte {
 
 	return h.Sum(nil)
 }
+
+func Blake2b256(data []byte) []byte {
+	out := blake2b.Sum256(data)
+	return out[:]
+}
