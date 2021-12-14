@@ -21,7 +21,9 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 # Supported Algorithms
 
-*note: estimated hash time assumes the DAG is already cached*
+The estimated hash times are meant to be relative since
+it can vary across different hardware. All tests were run
+with the DAG already calculated. 
 
 | Algorithm   | DAG         | Estimated Hash Time       |
 | ----------- | ----------- | --------------------------|
