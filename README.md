@@ -19,6 +19,22 @@ Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are s
 requires a strict 1.2Gb, so be careful if you're using verthash in memory. At the time of writing, running 
 `make test` will throw about 2.2Gb of data into `~/.powcache` due to the variety and breadth of tests.
 
+# Supported Algorithms
+
+*note: estimated hash time assumes the DAG is already cached*
+
+| Algorithm   | DAG         | Estimated Hash Time       |
+| ----------- | ----------- | --------------------------|
+| Ethash      | yes         | 4ms                       |
+| Etchash     | yes         | 4ms                       |
+| Kawpow      | yes         | 17ms                      |
+| Firopow     | yes         | 18ms                      |
+| Verthash    | yes         | 8ms disk, 270μs in memory |
+| Equihash    | no          | 30μs                      |
+| Autolykos2  | no          | 580μs                     |
+
+
+
 # Roadmap
 
 Most profitable Proof of Work chains nowdays use some sort of DAG, and that is almost always the Ethash DAG.
