@@ -23,7 +23,9 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 The estimated hash times are meant to be relative since
 it can vary across different hardware. All tests were run
-with the DAG already calculated. 
+with the respective DAG already calculated. In almost all cases hashing 
+functions are the bottleneck (which is how PoW algorithms
+are designed to behave).
 
 | Algorithm   | DAG         | Estimated Hash Time       |
 | ----------- | ----------- | --------------------------|
