@@ -64,7 +64,7 @@ func kawpow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint3
 
 	crypto.KeccakF800(&state)
 
-	digest := convutil.Uint32ArrayToBytes(state[:8])
+	digest := convutil.Uint32ArrayToBytesLE(state[:8])
 
 	return mixHash, digest
 }

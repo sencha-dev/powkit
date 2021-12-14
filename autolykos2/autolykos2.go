@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math/big"
 
+	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
@@ -34,6 +35,14 @@ func New(k, n int) *Config {
 
 /* helpers */
 
+func concatBytes(a, b []byte) []byte {
+	c := make([]byte, len(a), len(a)+len(b))
+	copy(c, a)
+	c = append(c, b...)
+
+	return c
+}
+
 func generateM(size uint64) []byte {
 	m := make([]byte, size*8)
 	for i := uint64(0); i < size; i++ {
@@ -41,20 +50,6 @@ func generateM(size uint64) []byte {
 	}
 
 	return m
-}
-
-func uint32BEToBytes(i uint32) []byte {
-	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, i)
-	return b
-}
-
-func concatBytes(a, b []byte) []byte {
-	c := make([]byte, len(a), len(a)+len(b))
-	copy(c, a)
-	c = append(c, b...)
-
-	return c
 }
 
 /* algorithm */
@@ -89,19 +84,17 @@ func (cfg *Config) genIndexes(seed []byte, n uint32) []uint32 {
 
 func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 	m := generateM(1024)
-	h := uint32BEToBytes(uint32(height))
+	h := convutil.Uint32ToBytesBE(uint32(height))
+	nonceBytes := convutil.Uint64ToBytesBE(nonce)
 
 	n := cfg.calcN(height)
 	bigN := new(big.Int).SetUint64(uint64(n))
-
-	nonceBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(nonceBytes, nonce)
 
 	fullMsg := concatBytes(msg, nonceBytes)
 	msgHash := crypto.Blake2b256(fullMsg)
 	prei8 := new(big.Int).SetBytes(msgHash[24:32])
 
-	i := uint32BEToBytes(uint32(prei8.Mod(prei8, bigN).Uint64()))
+	i := convutil.Uint32ToBytesBE(uint32(prei8.Mod(prei8, bigN).Uint64()))
 	f := crypto.Blake2b256(concatBytes(i, concatBytes(h, m)))[1:32]
 
 	seed := concatBytes(f, concatBytes(msg, nonceBytes))
@@ -109,7 +102,7 @@ func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 
 	f2 := new(big.Int)
 	for _, index := range indexes {
-		elem := concatBytes(uint32BEToBytes(index), concatBytes(h, m))
+		elem := concatBytes(convutil.Uint32ToBytesBE(index), concatBytes(h, m))
 		elemHash := crypto.Blake2b256(elem)[1:]
 		f2.Add(f2, new(big.Int).SetBytes(elemHash))
 	}
