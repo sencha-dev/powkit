@@ -14,7 +14,7 @@ though finding the exact differences is no easy task. This is meant to be a unif
 make the implementation of existing Proof of Work algorithms easier. 
 
 All DAG-based algorithms only implement a light DAG, which is sufficient for verification
-but full nodes. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
+but not full nodes or miners. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
 Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are stored), but verthash
 requires a strict 1.2Gb, so be careful if you're using verthash in memory. At the time of writing, running 
 `make test` will throw about 2.2Gb of data into `~/.powcache` due to the variety and breadth of tests.
