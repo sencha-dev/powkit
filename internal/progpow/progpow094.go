@@ -9,7 +9,6 @@ import (
 
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
-	"github.com/sencha-dev/powkit/internal/progpow"
 )
 
 func initialize(hash []byte, nonce uint64) ([25]uint32, uint64) {
@@ -43,7 +42,7 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 }
 
 func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
-	var cfg = &progpow.Config{
+	var cfg = &Config{
 		PeriodLength:        10,
 		DagLoads:            4,
 		CacheBytes:          16 * 1024,
@@ -55,7 +54,7 @@ func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index u
 	}
 
 	seed, seedHead := initialize(hash, nonce)
-	mixHash := progpow.HashMix(cfg, height, seedHead, datasetSize, lookup, l1)
+	mixHash := HashMix(cfg, height, seedHead, datasetSize, lookup, l1)
 	digest := finalize(seed, mixHash)
 
 	return mixHash, digest

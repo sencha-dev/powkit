@@ -9,9 +9,11 @@ import (
 	"testing"
 
 	"github.com/sencha-dev/powkit/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
-func TestProgpow(t *testing.T) {
+func TestProgpow094(t *testing.T) {
 	tests := []struct {
 		height uint64
 		nonce  uint64
@@ -77,9 +79,18 @@ func TestProgpow(t *testing.T) {
 		},
 	}
 
-	client := NewProgpow094()
+	dagClient := dag.NewLightDAG(dag.Progpow094Cfg)
 	for i, tt := range tests {
-		mix, digest := client.Compute(tt.height, tt.nonce, tt.hash)
+		epoch := dag.CalcEpoch(dag.Progpow094Cfg, tt.height)
+		datasetSize := dag.DatasetSize(dag.Progpow094Cfg, epoch)
+		cache := dagClient.GetCache(epoch)
+
+		keccak512Hasher := crypto.NewKeccak512Hasher()
+		lookup := func(index uint32) []uint32 {
+			return dag.GenerateDatasetItem2048(dag.Progpow094Cfg, cache.Cache(), index, keccak512Hasher)
+		}
+
+		mix, digest := compute(tt.hash, tt.height, tt.nonce, datasetSize, lookup, cache.L1())
 
 		if bytes.Compare(mix, tt.mix) != 0 {
 			t.Errorf("failed on %d: mix mismatch: have %x, want %x", i, mix, tt.mix)
