@@ -137,5 +137,5 @@ func HashMix(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l
 		mixHash[l%numWords] = crypto.Fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
-	return convutil.Uint32ArrayToBytes(mixHash)
+	return convutil.Uint32ArrayToBytesLE(mixHash)
 }

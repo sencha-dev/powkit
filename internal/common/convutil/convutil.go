@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 )
 
-func Uint32ArrayToBytes(arr []uint32) []byte {
+func Uint32ArrayToBytesLE(arr []uint32) []byte {
 	buf := make([]byte, len(arr)*4)
 
 	for i, v := range arr {
@@ -14,7 +14,7 @@ func Uint32ArrayToBytes(arr []uint32) []byte {
 	return buf
 }
 
-func BytesToUint32Array(buf []byte) []uint32 {
+func BytesToUint32ArrayLE(buf []byte) []uint32 {
 	length := len(buf) / 4
 	arr := make([]uint32, length)
 
@@ -23,4 +23,18 @@ func BytesToUint32Array(buf []byte) []uint32 {
 	}
 
 	return arr
+}
+
+func Uint32ToBytesBE(val uint32) []byte {
+	data := make([]byte, 4)
+	binary.BigEndian.PutUint32(data, val)
+
+	return data
+}
+
+func Uint64ToBytesBE(val uint64) []byte {
+	data := make([]byte, 8)
+	binary.BigEndian.PutUint64(data, val)
+
+	return data
 }

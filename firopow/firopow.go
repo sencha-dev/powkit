@@ -42,7 +42,7 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 
 	crypto.KeccakF800(&state)
 
-	digest := convutil.Uint32ArrayToBytes(state[:8])
+	digest := convutil.Uint32ArrayToBytesLE(state[:8])
 
 	return digest
 }

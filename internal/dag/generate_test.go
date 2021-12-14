@@ -83,7 +83,7 @@ func TestCacheGeneration(t *testing.T) {
 		seed := SeedHash(tt.cfg, uint64(tt.epoch)*tt.cfg.EpochLength+1)
 		generateCache(tt.cfg, cache, tt.epoch, seed)
 
-		want := convutil.BytesToUint32Array(tt.cache)
+		want := convutil.BytesToUint32ArrayLE(tt.cache)
 		if !reflect.DeepEqual(cache, want) {
 			t.Errorf("failed on %d: cache mismatch: have %x, want %x", i, cache, want)
 		}
@@ -114,7 +114,7 @@ func TestCacheGenerationHashed(t *testing.T) {
 		seed := SeedHash(tt.cfg, uint64(tt.epoch)*tt.cfg.EpochLength+1)
 		generateCache(tt.cfg, cache, tt.epoch, seed)
 
-		raw := convutil.Uint32ArrayToBytes(cache)
+		raw := convutil.Uint32ArrayToBytesLE(cache)
 		hash := crypto.Keccak256(raw)
 
 		if !reflect.DeepEqual(hash, tt.hash) {

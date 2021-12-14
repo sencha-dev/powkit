@@ -40,3 +40,6 @@ will probably be pretty set in stone. Hopefully that will happen in the next few
   - [Zcash: librustzcash (equihash)](https://github.com/zcash/librustzcash/tree/master/components/equihash)
   - [Gert-Jaap Glasbergen: verthash-go](https://github.com/gertjaap/verthash-go/)
   - [Firo: firo](https://github.com/firoorg/firo/tree/master/src/crypto/progpow)
+  - [Ergo: ergo](https://github.com/ergoplatform/ergo/blob/0af9dd9d8846d672c1e2a77f8ab29963fa5acd1e/src/main/scala/org/ergoplatform/mining/AutolykosPowScheme.scala)
+  - [leifjacky: erg-gominer-demo](https://github.com/leifjacky/erg-gominer-demo)
+
