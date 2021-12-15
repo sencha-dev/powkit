@@ -1,3 +1,5 @@
+//go:generate ../.bin/gen-lookup -package firopow -cacheInit 16777216 -cacheGrowth 131072 -datasetInit 1610612736 -datasetGrowth 8388608
+
 package firopow
 
 import (
@@ -33,8 +35,8 @@ func NewFiro() *Firopow {
 		CacheInitBytes:     1 << 24,
 		CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+		CacheSizes:   dag.NewLookupTable(cacheSizes, 2048),
+		DatasetSizes: dag.NewLookupTable(datasetSizes, 2048),
 
 		DatasetParents:  512,
 		EpochLength:     1300,

@@ -22,11 +22,6 @@ const (
 	hashWords = 16  // Number of 32 bit ints in a hash
 )
 
-type LookupTable struct {
-	maxEpoch uint64
-	table    []uint64
-}
-
 type Config struct {
 	Name       string
 	Revision   int
@@ -56,4 +51,18 @@ type Config struct {
 	L1Enabled       bool
 	L1CacheSize     uint64
 	L1CacheNumItems uint
+}
+
+type LookupTable struct {
+	maxEpoch uint64
+	table    []uint64
+}
+
+func NewLookupTable(table []uint64, maxEpoch uint64) *LookupTable {
+	lookupTable := &LookupTable{
+		maxEpoch: maxEpoch,
+		table:    table,
+	}
+
+	return lookupTable
 }

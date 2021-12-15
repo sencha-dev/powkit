@@ -1,6 +1,13 @@
 SHELL=/bin/bash -o pipefail
 
+export PATH := .bin:${PATH}
+
 BUILDARGS=CGO_ENABLED=0
+
+.PHONY: generate
+generate:
+	$(BUILD_ARGS) go build -o .bin/gen-lookup ./cmd/gen-lookup
+	go generate ./...
 
 .PHONY: test
 test:
