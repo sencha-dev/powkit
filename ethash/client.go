@@ -19,6 +19,7 @@ package ethash
 import (
 	"runtime"
 
+	"github.com/sencha-dev/powkit/internal/common"
 	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
 )
@@ -38,11 +39,59 @@ func New(cfg *dag.Config) *Ethash {
 }
 
 func NewEthereum() *Ethash {
-	return New(dag.EthereumCfg)
+	var cfg = &dag.Config{
+		Name:       "ETH",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  256,
+		EpochLength:     30000,
+		SeedEpochLength: 30000,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled: false,
+	}
+
+	return New(cfg)
 }
 
 func NewEthereumClassic() *Ethash {
-	return New(dag.EthereumClassicCfg)
+	var cfg = &dag.Config{
+		Name:       "ETC",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  256,
+		EpochLength:     60000,
+		SeedEpochLength: 30000,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled: false,
+	}
+
+	return New(cfg)
 }
 
 func (e *Ethash) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {

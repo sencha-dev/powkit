@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/sencha-dev/powkit/internal/common"
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/common/testutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
@@ -27,13 +28,11 @@ import (
 
 func TestCacheGeneration(t *testing.T) {
 	tests := []struct {
-		cfg   *Config
 		size  uint64
 		epoch uint64
 		cache []byte
 	}{
 		{
-			cfg:   EthereumCfg,
 			size:  1024,
 			epoch: 0,
 			cache: testutil.MustDecodeHex("0x" +
@@ -55,7 +54,6 @@ func TestCacheGeneration(t *testing.T) {
 				"845f64fd8324bb85312979dead74f764c9677aab89801ad4f927f1c00f12e28f22422bb44200d1969d9ab377dd6b099dc6dbc3222e9321b2c1e84f8e2f07731c"),
 		},
 		{
-			cfg:   EthereumCfg,
 			size:  1024,
 			epoch: 1,
 			cache: testutil.MustDecodeHex("0x" +
@@ -78,10 +76,34 @@ func TestCacheGeneration(t *testing.T) {
 		},
 	}
 
+	var cfg = &Config{
+		Name:       "ETH",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  256,
+		EpochLength:     30000,
+		SeedEpochLength: 30000,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled: false,
+	}
+
 	for i, tt := range tests {
 		cache := make([]uint32, tt.size/4)
-		seed := SeedHash(tt.cfg, uint64(tt.epoch)*tt.cfg.EpochLength+1)
-		generateCache(tt.cfg, cache, tt.epoch, seed)
+		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
+		generateCache(cfg, cache, tt.epoch, seed)
 
 		want := convutil.BytesToUint32ArrayLE(tt.cache)
 		if !reflect.DeepEqual(cache, want) {
@@ -92,27 +114,48 @@ func TestCacheGeneration(t *testing.T) {
 
 func TestCacheGenerationHashed(t *testing.T) {
 	tests := []struct {
-		cfg   *Config
 		epoch uint64
 		hash  []byte
 	}{
 		{
-			cfg:   RavencoinCfg,
 			epoch: 0,
 			hash:  testutil.MustDecodeHex("0x35ded12eecf2ce2e8da2e15c06d463aae9b84cb2530a00b932e4bbc484cde353"),
 		},
 		{
-			cfg:   RavencoinCfg,
 			epoch: 171,
 			hash:  testutil.MustDecodeHex("0x468ef97519bd780a0dbd19d46c099118d6f4b777c1b8d0d4b0d6f62a5018100e"),
 		},
 	}
 
+	var cfg = &Config{
+		Name:       "ETH",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  256,
+		EpochLength:     30000,
+		SeedEpochLength: 30000,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled: false,
+	}
+
 	for i, tt := range tests {
-		size := CacheSize(tt.cfg, tt.epoch)
+		size := CacheSize(cfg, tt.epoch)
 		cache := make([]uint32, size/4)
-		seed := SeedHash(tt.cfg, uint64(tt.epoch)*tt.cfg.EpochLength+1)
-		generateCache(tt.cfg, cache, tt.epoch, seed)
+		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
+		generateCache(cfg, cache, tt.epoch, seed)
 
 		raw := convutil.Uint32ArrayToBytesLE(cache)
 		hash := crypto.Keccak256(raw)
@@ -125,14 +168,12 @@ func TestCacheGenerationHashed(t *testing.T) {
 
 func TestDatasetItemGeneration(t *testing.T) {
 	tests := []struct {
-		cfg   *Config
 		epoch uint64
 		index uint32
 		hash1 []byte
 		hash2 []byte
 	}{
 		{
-			cfg:   RavencoinCfg,
 			epoch: 13,
 			index: 0,
 			hash1: testutil.MustDecodeHex("0xbbae35d16fcdb5bd8f968cc3058d5122cc7d33051bcab1fb91b36611365a6ee5df00073f7af5ee474d0402796e8f861c586fdc0eb5fbc4fe882b5c7add3060f4"),
@@ -140,15 +181,41 @@ func TestDatasetItemGeneration(t *testing.T) {
 		},
 	}
 
+	var cfg = &Config{
+		Name:       "RVN",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  512,
+		EpochLength:     7500,
+		SeedEpochLength: 7500,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled:       true,
+		L1CacheSize:     4096 * 4,
+		L1CacheNumItems: 4096,
+	}
+
 	for i, tt := range tests {
-		size := CacheSize(tt.cfg, tt.epoch)
+		size := CacheSize(cfg, tt.epoch)
 		cache := make([]uint32, size/4)
-		seed := SeedHash(tt.cfg, uint64(tt.epoch)*tt.cfg.EpochLength+1)
-		generateCache(tt.cfg, cache, tt.epoch, seed)
+		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
+		generateCache(cfg, cache, tt.epoch, seed)
 
 		keccak512Hasher := crypto.NewKeccak512Hasher()
-		item1 := generateDatasetItem(tt.cfg, cache, tt.index, keccak512Hasher)
-		item2 := generateDatasetItem(tt.cfg, cache, tt.index+1, keccak512Hasher)
+		item1 := generateDatasetItem(cfg, cache, tt.index, keccak512Hasher)
+		item2 := generateDatasetItem(cfg, cache, tt.index+1, keccak512Hasher)
 
 		if !reflect.DeepEqual(item1, tt.hash1) {
 			t.Errorf("failed on %d: item 1 mismatch: have %x, want %x", i, item1, tt.hash1)

@@ -19,6 +19,7 @@ package kawpow
 import (
 	"runtime"
 
+	"github.com/sencha-dev/powkit/internal/common"
 	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
 )
@@ -38,7 +39,33 @@ func New(cfg *dag.Config) *Kawpow {
 }
 
 func NewRavencoin() *Kawpow {
-	return New(dag.RavencoinCfg)
+	var cfg = &dag.Config{
+		Name:       "RVN",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  512,
+		EpochLength:     7500,
+		SeedEpochLength: 7500,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled:       true,
+		L1CacheSize:     4096 * 4,
+		L1CacheNumItems: 4096,
+	}
+
+	return New(cfg)
 }
 
 func (e *Kawpow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {

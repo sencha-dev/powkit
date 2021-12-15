@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/sencha-dev/powkit/internal/common"
 	"github.com/sencha-dev/powkit/internal/common/testutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
@@ -79,15 +80,41 @@ func TestProgpow094(t *testing.T) {
 		},
 	}
 
-	dagClient := dag.NewLightDAG(dag.Progpow094Cfg)
+	var dagCfg = &dag.Config{
+		Name:       "PROGPOW094",
+		Revision:   23,
+		StorageDir: common.DefaultDir(".powcache"),
+
+		DatasetInitBytes:   1 << 30,
+		DatasetGrowthBytes: 1 << 23,
+		CacheInitBytes:     1 << 24,
+		CacheGrowthBytes:   1 << 17,
+
+		DatasetSizes: nil,
+		CacheSizes:   nil,
+
+		DatasetParents:  512,
+		EpochLength:     30000,
+		SeedEpochLength: 30000,
+
+		CacheRounds:    3,
+		CachesCount:    3,
+		CachesLockMmap: false,
+
+		L1Enabled:       true,
+		L1CacheSize:     4096 * 4,
+		L1CacheNumItems: 4096,
+	}
+
+	dagClient := dag.NewLightDAG(dagCfg)
 	for i, tt := range tests {
-		epoch := dag.CalcEpoch(dag.Progpow094Cfg, tt.height)
-		datasetSize := dag.DatasetSize(dag.Progpow094Cfg, epoch)
+		epoch := dag.CalcEpoch(dagCfg, tt.height)
+		datasetSize := dag.DatasetSize(dagCfg, epoch)
 		cache := dagClient.GetCache(epoch)
 
 		keccak512Hasher := crypto.NewKeccak512Hasher()
 		lookup := func(index uint32) []uint32 {
-			return dag.GenerateDatasetItem2048(dag.Progpow094Cfg, cache.Cache(), index, keccak512Hasher)
+			return dag.GenerateDatasetItem2048(dagCfg, cache.Cache(), index, keccak512Hasher)
 		}
 
 		mix, digest := compute(tt.hash, tt.height, tt.nonce, datasetSize, lookup, cache.L1())
