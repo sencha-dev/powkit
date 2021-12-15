@@ -1,7 +1,5 @@
 SHELL=/bin/bash -o pipefail
 
-export PATH := .bin:${PATH}
-
 BUILDARGS=CGO_ENABLED=0
 
 .PHONY: generate

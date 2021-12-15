@@ -71,7 +71,6 @@ func saveToFile(data []byte, name string) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("locating working directory: %s", err)
-		return
 	}
 
 	filename := fmt.Sprintf("%s_lookup.go", name)
@@ -102,6 +101,10 @@ func main() {
 	flag.Uint64Var(&datasetInitBytes, "datasetInit", 0, "The dataset initialization size in bytes")
 	flag.Uint64Var(&datasetGrowthBytes, "datasetGrowth", 0, "The dataset growth factor in bytes")
 	flag.Parse()
+
+	if len(packageName) == 0 {
+		log.Fatalf("package name is required")
+	}
 
 	cacheLookupTable := genCacheLookupTable(cacheInitBytes, cacheGrowthBytes, epochs)
 	datasetLookupTable := genDatasetLookupTable(datasetInitBytes, datasetGrowthBytes, epochs)
