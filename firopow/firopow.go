@@ -60,7 +60,7 @@ func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index u
 	}
 
 	seed, seedHead := initialize(hash, nonce)
-	mixHash := progpow.HashMix(cfg, height, seedHead, datasetSize, lookup, l1)
+	mixHash := progpow.Hash(cfg, height, seedHead, datasetSize, lookup, l1)
 	digest := finalize(seed, mixHash)
 
 	return mixHash, digest

@@ -110,7 +110,7 @@ func round(cfg *Config, seed uint64, r uint32, mix [][]uint32, datasetSize uint6
 	return mix
 }
 
-func HashMix(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l1 []uint32) []byte {
+func Hash(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l1 []uint32) []byte {
 	mix := initMix(seed, cfg.LaneCount, cfg.RegisterCount)
 
 	number := height / cfg.PeriodLength

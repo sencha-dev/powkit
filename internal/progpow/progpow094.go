@@ -11,6 +11,17 @@ import (
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
+var progpow094Cfg = &Config{
+	PeriodLength:        10,
+	DagLoads:            4,
+	CacheBytes:          16 * 1024,
+	LaneCount:           16,
+	RegisterCount:       32,
+	RoundCount:          64,
+	RoundCacheAccesses:  11,
+	RoundMathOperations: 18,
+}
+
 func initialize(hash []byte, nonce uint64) ([25]uint32, uint64) {
 	var seed [25]uint32
 	for i := 0; i < 8; i += 1 {
@@ -42,19 +53,8 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 }
 
 func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
-	var cfg = &Config{
-		PeriodLength:        10,
-		DagLoads:            4,
-		CacheBytes:          16 * 1024,
-		LaneCount:           16,
-		RegisterCount:       32,
-		RoundCount:          64,
-		RoundCacheAccesses:  11,
-		RoundMathOperations: 18,
-	}
-
 	seed, seedHead := initialize(hash, nonce)
-	mixHash := HashMix(cfg, height, seedHead, datasetSize, lookup, l1)
+	mixHash := Hash(progpow094Cfg, height, seedHead, datasetSize, lookup, l1)
 	digest := finalize(seed, mixHash)
 
 	return mixHash, digest
