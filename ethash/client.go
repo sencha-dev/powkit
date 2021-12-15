@@ -51,8 +51,8 @@ func NewEthereum() *Ethash {
 		CacheInitBytes:     1 << 24,
 		CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+		CacheSizes:   dag.NewLookupTable(cacheSizes, 2048),
+		DatasetSizes: dag.NewLookupTable(datasetSizes, 2048),
 
 		DatasetParents:  256,
 		EpochLength:     30000,
