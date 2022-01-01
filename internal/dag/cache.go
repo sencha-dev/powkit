@@ -40,7 +40,7 @@ func (c *cache) L1() []uint32 {
 }
 
 // generate ensures that the cache content is generated before use.
-func (c *cache) generate(cfg *Config) {
+func (c *cache) generate(cfg *DAG) {
 	c.once.Do(func() {
 		size := cfg.CacheSize(c.epoch)
 		seed := cfg.SeedHash(c.epoch*cfg.EpochLength + 1)

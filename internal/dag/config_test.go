@@ -26,7 +26,6 @@ import (
 
 func TestEpochNumber(t *testing.T) {
 	tests := []struct {
-		cfg    *Config
 		height uint64
 		epoch  uint64
 	}{
@@ -60,34 +59,36 @@ func TestEpochNumber(t *testing.T) {
 		},
 	}
 
-	var cfg = &Config{
-		Name:       "RVN",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
+	var d = &DAG{
+		Config: Config{
+			Name:       "RVN",
+			Revision:   23,
+			StorageDir: common.DefaultDir(".powcache"),
 
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
+			DatasetInitBytes:   1 << 30,
+			DatasetGrowthBytes: 1 << 23,
+			CacheInitBytes:     1 << 24,
+			CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+			DatasetSizes: nil,
+			CacheSizes:   nil,
 
-		DatasetParents:  512,
-		EpochLength:     7500,
-		SeedEpochLength: 7500,
+			DatasetParents:  512,
+			EpochLength:     7500,
+			SeedEpochLength: 7500,
 
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
+			CacheRounds:    3,
+			CachesCount:    3,
+			CachesLockMmap: false,
 
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
+			L1Enabled:       true,
+			L1CacheSize:     4096 * 4,
+			L1CacheNumItems: 4096,
+		},
 	}
 
 	for i, tt := range tests {
-		epoch := cfg.CalcEpoch(tt.height)
+		epoch := d.CalcEpoch(tt.height)
 
 		if epoch != tt.epoch {
 			t.Errorf("failed on %d: epoch mismatch: have %d want %d", i, epoch, tt.epoch)
@@ -126,34 +127,36 @@ func TestSeedHash(t *testing.T) {
 		},
 	}
 
-	var cfg = &Config{
-		Name:       "RVN",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
+	var d = &DAG{
+		Config: Config{
+			Name:       "RVN",
+			Revision:   23,
+			StorageDir: common.DefaultDir(".powcache"),
 
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
+			DatasetInitBytes:   1 << 30,
+			DatasetGrowthBytes: 1 << 23,
+			CacheInitBytes:     1 << 24,
+			CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+			DatasetSizes: nil,
+			CacheSizes:   nil,
 
-		DatasetParents:  512,
-		EpochLength:     7500,
-		SeedEpochLength: 7500,
+			DatasetParents:  512,
+			EpochLength:     7500,
+			SeedEpochLength: 7500,
 
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
+			CacheRounds:    3,
+			CachesCount:    3,
+			CachesLockMmap: false,
 
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
+			L1Enabled:       true,
+			L1CacheSize:     4096 * 4,
+			L1CacheNumItems: 4096,
+		},
 	}
 
 	for i, tt := range tests {
-		seed := cfg.SeedHash(uint64(tt.epoch)*cfg.EpochLength + 1)
+		seed := d.SeedHash(uint64(tt.epoch)*d.EpochLength + 1)
 		if !reflect.DeepEqual(seed, tt.seed) {
 			t.Errorf("failed on %d: seed mismatch: have %x, want %x", i, seed, tt.seed)
 		}
@@ -207,32 +210,34 @@ func TestCalcCacheSize(t *testing.T) {
 		},
 	}
 
-	var cfg = &Config{
-		Name:       "ETH",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
+	var d = &DAG{
+		Config: Config{
+			Name:       "ETH",
+			Revision:   23,
+			StorageDir: common.DefaultDir(".powcache"),
 
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
+			DatasetInitBytes:   1 << 30,
+			DatasetGrowthBytes: 1 << 23,
+			CacheInitBytes:     1 << 24,
+			CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+			DatasetSizes: nil,
+			CacheSizes:   nil,
 
-		DatasetParents:  256,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
+			DatasetParents:  256,
+			EpochLength:     30000,
+			SeedEpochLength: 30000,
 
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
+			CacheRounds:    3,
+			CachesCount:    3,
+			CachesLockMmap: false,
 
-		L1Enabled: false,
+			L1Enabled: false,
+		},
 	}
 
 	for i, tt := range tests {
-		size := cfg.calcCacheSize(tt.epoch)
+		size := d.calcCacheSize(tt.epoch)
 		if size != tt.size {
 			t.Errorf("failed on %d: size mismatch: have %d, want %d", i, size, tt.size)
 		}
@@ -286,32 +291,34 @@ func TestCalcDatasetSize(t *testing.T) {
 		},
 	}
 
-	var cfg = &Config{
-		Name:       "ETH",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
+	var d = &DAG{
+		Config: Config{
+			Name:       "ETH",
+			Revision:   23,
+			StorageDir: common.DefaultDir(".powcache"),
 
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
+			DatasetInitBytes:   1 << 30,
+			DatasetGrowthBytes: 1 << 23,
+			CacheInitBytes:     1 << 24,
+			CacheGrowthBytes:   1 << 17,
 
-		DatasetSizes: nil,
-		CacheSizes:   nil,
+			DatasetSizes: nil,
+			CacheSizes:   nil,
 
-		DatasetParents:  256,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
+			DatasetParents:  256,
+			EpochLength:     30000,
+			SeedEpochLength: 30000,
 
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
+			CacheRounds:    3,
+			CachesCount:    3,
+			CachesLockMmap: false,
 
-		L1Enabled: false,
+			L1Enabled: false,
+		},
 	}
 
 	for i, tt := range tests {
-		size := cfg.calcDatasetSize(tt.epoch)
+		size := d.calcDatasetSize(tt.epoch)
 		if size != tt.size {
 			t.Errorf("failed on %d: size mismatch: have %d, want %d", i, size, tt.size)
 		}

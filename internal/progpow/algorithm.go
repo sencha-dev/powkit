@@ -7,6 +7,7 @@ package progpow
 import (
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 const (
@@ -23,8 +24,6 @@ type Config struct {
 	RoundCacheAccesses  int
 	RoundMathOperations int
 }
-
-type lookupFunc func(index uint32) []uint32
 
 func initMix(seed uint64, numLanes, numRegs int) [][]uint32 {
 	z := crypto.Fnv1a(fnvOffsetBasis, uint32(seed))
@@ -46,7 +45,7 @@ func initMix(seed uint64, numLanes, numRegs int) [][]uint32 {
 	return mix
 }
 
-func round(cfg *Config, seed uint64, r uint32, mix [][]uint32, datasetSize uint64, lookup lookupFunc, l1 []uint32) [][]uint32 {
+func round(cfg *Config, seed uint64, r uint32, mix [][]uint32, datasetSize uint64, lookup dag.LookupFunc, l1 []uint32) [][]uint32 {
 	state := initMixRngState(seed, uint32(cfg.RegisterCount))
 	numItems := uint32(datasetSize / (2 * 128))
 	itemIndex := mix[r%uint32(cfg.LaneCount)][0] % numItems
@@ -110,7 +109,7 @@ func round(cfg *Config, seed uint64, r uint32, mix [][]uint32, datasetSize uint6
 	return mix
 }
 
-func Hash(cfg *Config, height, seed, datasetSize uint64, lookup lookupFunc, l1 []uint32) []byte {
+func Hash(cfg *Config, height, seed, datasetSize uint64, lookup dag.LookupFunc, l1 []uint32) []byte {
 	mix := initMix(seed, cfg.LaneCount, cfg.RegisterCount)
 
 	number := height / cfg.PeriodLength

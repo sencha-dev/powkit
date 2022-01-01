@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/sencha-dev/powkit/internal/common/testutil"
+	"github.com/sencha-dev/powkit/internal/dag"
 )
 
 func compareUint32Array(a, b []uint32) bool {
@@ -96,7 +97,7 @@ func TestRound(t *testing.T) {
 		r           uint32
 		mix         [][]uint32
 		datasetSize uint64
-		lookup      lookupFunc
+		lookup      dag.LookupFunc
 		l1          []uint32
 		result      [][]uint32
 	}{
@@ -853,7 +854,7 @@ func TestHash(t *testing.T) {
 		height      uint64
 		seed        uint64
 		datasetSize uint64
-		lookup      lookupFunc
+		lookup      dag.LookupFunc
 		l1          []uint32
 		result      []byte
 	}{

@@ -22,26 +22,23 @@ import (
 	"runtime"
 
 	"github.com/sencha-dev/powkit/internal/common"
-	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
 )
 
-type Ethash struct {
-	dag *dag.LightDAG
-	cfg *dag.Config
+type Client struct {
+	*dag.DAG
 }
 
-func New(cfg *dag.Config) *Ethash {
-	client := &Ethash{
-		dag: dag.NewLightDAG(cfg),
-		cfg: cfg,
+func New(cfg dag.Config) *Client {
+	client := &Client{
+		DAG: dag.New(cfg),
 	}
 
 	return client
 }
 
-func NewEthereum() *Ethash {
-	var cfg = &dag.Config{
+func NewEthereum() *Client {
+	var cfg = dag.Config{
 		Name:       "ETH",
 		Revision:   23,
 		StorageDir: common.DefaultDir(".powcache"),
@@ -68,8 +65,8 @@ func NewEthereum() *Ethash {
 	return New(cfg)
 }
 
-func NewEthereumClassic() *Ethash {
-	var cfg = &dag.Config{
+func NewEthereumClassic() *Client {
+	var cfg = dag.Config{
 		Name:       "ETC",
 		Revision:   23,
 		StorageDir: common.DefaultDir(".powcache"),
@@ -96,15 +93,11 @@ func NewEthereumClassic() *Ethash {
 	return New(cfg)
 }
 
-func (e *Ethash) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := e.cfg.CalcEpoch(height)
-	size := e.cfg.DatasetSize(epoch)
-	cache := e.dag.GetCache(epoch)
-
-	keccak512Hasher := crypto.NewKeccak512Hasher()
-	lookup := func(index uint32) []uint32 {
-		return e.cfg.GenerateDatasetItem512(cache.Cache(), index, keccak512Hasher)
-	}
+func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
+	epoch := c.CalcEpoch(height)
+	size := c.DatasetSize(epoch)
+	cache := c.GetCache(epoch)
+	lookup := c.NewLookupFunc512(cache, epoch)
 
 	mix, digest := hashimoto(hash, nonce, size, lookup)
 	runtime.KeepAlive(cache)

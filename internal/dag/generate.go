@@ -31,7 +31,7 @@ import (
 // algorithm from Strict Memory Hard Hashing Functions (2014). The output is a
 // set of 524288 64-byte values.
 // This method places the result into dest in machine byte order.
-func (cfg *Config) generateCache(dest []uint32, epoch uint64, seed []byte) {
+func (d *DAG) generateCache(dest []uint32, epoch uint64, seed []byte) {
 	// Convert our destination slice to a byte buffer
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
 	header.Len *= 4
@@ -54,7 +54,7 @@ func (cfg *Config) generateCache(dest []uint32, epoch uint64, seed []byte) {
 	// Use a low-round version of randmemohash
 	temp := make([]byte, hashBytes)
 
-	for i := 0; i < cfg.CacheRounds; i++ {
+	for i := 0; i < d.CacheRounds; i++ {
 		for j := 0; j < rows; j++ {
 			var (
 				srcOff = ((j - 1 + rows) % rows) * hashBytes
@@ -67,7 +67,7 @@ func (cfg *Config) generateCache(dest []uint32, epoch uint64, seed []byte) {
 	}
 }
 
-func (cfg *Config) generateL1Cache(dest []uint32, cache []uint32) {
+func (d *DAG) generateL1Cache(dest []uint32, cache []uint32) {
 	keccak512Hasher := crypto.NewKeccak512Hasher()
 
 	header := *(*reflect.SliceHeader)(unsafe.Pointer(&dest))
@@ -79,14 +79,14 @@ func (cfg *Config) generateL1Cache(dest []uint32, cache []uint32) {
 	rows := int(size) / hashBytes
 
 	for i := 0; i < rows; i++ {
-		item := cfg.generateDatasetItem(cache, uint32(i), keccak512Hasher)
+		item := d.generateDatasetItem(cache, uint32(i), keccak512Hasher)
 		copy(l1[i*hashBytes:], item)
 	}
 }
 
 // generateDatasetItem combines data from 256 pseudorandomly selected cache nodes,
 // and hashes that to compute a single dataset node.
-func (cfg *Config) generateDatasetItem(cache []uint32, index uint32, keccak512Hasher crypto.Hasher) []byte {
+func (d *DAG) generateDatasetItem(cache []uint32, index uint32, keccak512Hasher crypto.Hasher) []byte {
 	// Calculate the number of theoretical rows (we use one buffer nonetheless)
 	rows := uint32(len(cache) / hashWords)
 
@@ -107,7 +107,7 @@ func (cfg *Config) generateDatasetItem(cache []uint32, index uint32, keccak512Ha
 	}
 
 	// fnv it with a lot of random cache nodes based on index
-	for i := uint32(0); i < cfg.DatasetParents; i++ {
+	for i := uint32(0); i < d.DatasetParents; i++ {
 		parent := crypto.Fnv1(index^i, intMix[i%16]) % rows
 		crypto.FnvHash(intMix, cache[parent*hashWords:])
 	}
@@ -122,37 +122,13 @@ func (cfg *Config) generateDatasetItem(cache []uint32, index uint32, keccak512Ha
 	return mix
 }
 
-func (cfg *Config) GenerateDatasetItem512(cache []uint32, index uint32, keccak512Hasher crypto.Hasher) []uint32 {
-	data := make([]uint32, hashWords)
-	item := cfg.generateDatasetItem(cache, index, keccak512Hasher)
-
-	for i := 0; i < hashWords; i++ {
-		data[i] = binary.LittleEndian.Uint32(item[i*4:])
-	}
-
-	return data
-}
-
-func (cfg *Config) GenerateDatasetItem1024(cache []uint32, index uint32, keccak512Hasher crypto.Hasher) []uint32 {
-	data := make([]uint32, hashWords*2)
-	for n := 0; n < 2; n++ {
-		item := cfg.generateDatasetItem(cache, index*2+uint32(n), keccak512Hasher)
+func (d *DAG) generateDatasetItemUint(cache []uint32, index, size uint32, keccak512Hasher crypto.Hasher) []uint32 {
+	data := make([]uint32, hashWords*size)
+	for n := 0; n < int(size); n++ {
+		item := d.generateDatasetItem(cache, index*size+uint32(n), keccak512Hasher)
 
 		for i := 0; i < hashWords; i++ {
 			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4:])
-		}
-	}
-
-	return data
-}
-
-func (cfg *Config) GenerateDatasetItem2048(cache []uint32, index uint32, keccak512Hasher crypto.Hasher) []uint32 {
-	data := make([]uint32, hashWords*4)
-	for n := 0; n < 4; n++ {
-		item := cfg.generateDatasetItem(cache, index*4+uint32(n), keccak512Hasher)
-
-		for i := 0; i < hashWords; i++ {
-			data[n*hashWords+i] = binary.LittleEndian.Uint32(item[i*4 : i*4+4])
 		}
 	}
 

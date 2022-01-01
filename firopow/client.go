@@ -6,26 +6,23 @@ import (
 	"runtime"
 
 	"github.com/sencha-dev/powkit/internal/common"
-	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
 )
 
-type Firopow struct {
-	dag *dag.LightDAG
-	cfg *dag.Config
+type Client struct {
+	*dag.DAG
 }
 
-func New(cfg *dag.Config) *Firopow {
-	client := &Firopow{
-		dag: dag.NewLightDAG(cfg),
-		cfg: cfg,
+func New(cfg dag.Config) *Client {
+	client := &Client{
+		DAG: dag.New(cfg),
 	}
 
 	return client
 }
 
-func NewFiro() *Firopow {
-	var cfg = &dag.Config{
+func NewFiro() *Client {
+	var cfg = dag.Config{
 		Name:       "FIRO",
 		Revision:   23,
 		StorageDir: common.DefaultDir(".powcache"),
@@ -54,15 +51,11 @@ func NewFiro() *Firopow {
 	return New(cfg)
 }
 
-func (e *Firopow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := e.cfg.CalcEpoch(height)
-	datasetSize := e.cfg.DatasetSize(epoch)
-	cache := e.dag.GetCache(epoch)
-
-	keccak512Hasher := crypto.NewKeccak512Hasher()
-	lookup := func(index uint32) []uint32 {
-		return e.cfg.GenerateDatasetItem2048(cache.Cache(), index, keccak512Hasher)
-	}
+func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
+	epoch := c.CalcEpoch(height)
+	datasetSize := c.DatasetSize(epoch)
+	cache := c.GetCache(epoch)
+	lookup := c.NewLookupFunc2048(cache, epoch)
 
 	mix, digest := compute(hash, height, nonce, datasetSize, lookup, cache.L1())
 	runtime.KeepAlive(cache)
