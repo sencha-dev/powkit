@@ -87,7 +87,7 @@ func TestEpochNumber(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		epoch := CalcEpoch(cfg, tt.height)
+		epoch := cfg.CalcEpoch(tt.height)
 
 		if epoch != tt.epoch {
 			t.Errorf("failed on %d: epoch mismatch: have %d want %d", i, epoch, tt.epoch)
@@ -153,7 +153,7 @@ func TestSeedHash(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
+		seed := cfg.SeedHash(uint64(tt.epoch)*cfg.EpochLength + 1)
 		if !reflect.DeepEqual(seed, tt.seed) {
 			t.Errorf("failed on %d: seed mismatch: have %x, want %x", i, seed, tt.seed)
 		}
@@ -232,7 +232,7 @@ func TestCalcCacheSize(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		size := calcCacheSize(cfg, tt.epoch)
+		size := cfg.calcCacheSize(tt.epoch)
 		if size != tt.size {
 			t.Errorf("failed on %d: size mismatch: have %d, want %d", i, size, tt.size)
 		}
@@ -311,7 +311,7 @@ func TestCalcDatasetSize(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		size := calcDatasetSize(cfg, tt.epoch)
+		size := cfg.calcDatasetSize(tt.epoch)
 		if size != tt.size {
 			t.Errorf("failed on %d: size mismatch: have %d, want %d", i, size, tt.size)
 		}

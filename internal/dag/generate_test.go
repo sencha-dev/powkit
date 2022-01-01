@@ -102,8 +102,8 @@ func TestCacheGeneration(t *testing.T) {
 
 	for i, tt := range tests {
 		cache := make([]uint32, tt.size/4)
-		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
-		generateCache(cfg, cache, tt.epoch, seed)
+		seed := cfg.SeedHash(uint64(tt.epoch)*cfg.EpochLength + 1)
+		cfg.generateCache(cache, tt.epoch, seed)
 
 		want := convutil.BytesToUint32ArrayLE(tt.cache)
 		if !reflect.DeepEqual(cache, want) {
@@ -152,10 +152,10 @@ func TestCacheGenerationHashed(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		size := CacheSize(cfg, tt.epoch)
+		size := cfg.CacheSize(tt.epoch)
 		cache := make([]uint32, size/4)
-		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
-		generateCache(cfg, cache, tt.epoch, seed)
+		seed := cfg.SeedHash(uint64(tt.epoch)*cfg.EpochLength + 1)
+		cfg.generateCache(cache, tt.epoch, seed)
 
 		raw := convutil.Uint32ArrayToBytesLE(cache)
 		hash := crypto.Keccak256(raw)
@@ -208,14 +208,14 @@ func TestDatasetItemGeneration(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		size := CacheSize(cfg, tt.epoch)
+		size := cfg.CacheSize(tt.epoch)
 		cache := make([]uint32, size/4)
-		seed := SeedHash(cfg, uint64(tt.epoch)*cfg.EpochLength+1)
-		generateCache(cfg, cache, tt.epoch, seed)
+		seed := cfg.SeedHash(uint64(tt.epoch)*cfg.EpochLength + 1)
+		cfg.generateCache(cache, tt.epoch, seed)
 
 		keccak512Hasher := crypto.NewKeccak512Hasher()
-		item1 := generateDatasetItem(cfg, cache, tt.index, keccak512Hasher)
-		item2 := generateDatasetItem(cfg, cache, tt.index+1, keccak512Hasher)
+		item1 := cfg.generateDatasetItem(cache, tt.index, keccak512Hasher)
+		item2 := cfg.generateDatasetItem(cache, tt.index+1, keccak512Hasher)
 
 		if !reflect.DeepEqual(item1, tt.hash1) {
 			t.Errorf("failed on %d: item 1 mismatch: have %x, want %x", i, item1, tt.hash1)

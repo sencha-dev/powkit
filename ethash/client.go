@@ -97,13 +97,13 @@ func NewEthereumClassic() *Ethash {
 }
 
 func (e *Ethash) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := dag.CalcEpoch(e.cfg, height)
-	size := dag.DatasetSize(e.cfg, epoch)
+	epoch := e.cfg.CalcEpoch(height)
+	size := e.cfg.DatasetSize(epoch)
 	cache := e.dag.GetCache(epoch)
 
 	keccak512Hasher := crypto.NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return dag.GenerateDatasetItem512(e.cfg, cache.Cache(), index, keccak512Hasher)
+		return e.cfg.GenerateDatasetItem512(cache.Cache(), index, keccak512Hasher)
 	}
 
 	mix, digest := hashimoto(hash, nonce, size, lookup)

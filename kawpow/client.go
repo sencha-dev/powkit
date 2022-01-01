@@ -71,13 +71,13 @@ func NewRavencoin() *Kawpow {
 }
 
 func (e *Kawpow) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := dag.CalcEpoch(e.cfg, height)
-	datasetSize := dag.DatasetSize(e.cfg, epoch)
+	epoch := e.cfg.CalcEpoch(height)
+	datasetSize := e.cfg.DatasetSize(epoch)
 	cache := e.dag.GetCache(epoch)
 
 	keccak512Hasher := crypto.NewKeccak512Hasher()
 	lookup := func(index uint32) []uint32 {
-		return dag.GenerateDatasetItem2048(e.cfg, cache.Cache(), index, keccak512Hasher)
+		return e.cfg.GenerateDatasetItem2048(cache.Cache(), index, keccak512Hasher)
 	}
 
 	mix, digest := compute(hash, height, nonce, datasetSize, lookup, cache.L1())

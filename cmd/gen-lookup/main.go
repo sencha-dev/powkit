@@ -21,7 +21,7 @@ func genCacheLookupTable(initBytes, growthBytes uint64, epochs int) []uint64 {
 
 	lookupTable := make([]uint64, epochs)
 	for i := range lookupTable {
-		lookupTable[i] = dag.CacheSize(cfg, uint64(i))
+		lookupTable[i] = cfg.CacheSize(uint64(i))
 	}
 
 	return lookupTable
@@ -35,7 +35,7 @@ func genDatasetLookupTable(initBytes, growthBytes uint64, epochs int) []uint64 {
 
 	lookupTable := make([]uint64, epochs)
 	for i := range lookupTable {
-		lookupTable[i] = dag.DatasetSize(cfg, uint64(i))
+		lookupTable[i] = cfg.DatasetSize(uint64(i))
 	}
 
 	return lookupTable

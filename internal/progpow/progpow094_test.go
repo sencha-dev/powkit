@@ -108,13 +108,13 @@ func TestProgpow094(t *testing.T) {
 
 	dagClient := dag.NewLightDAG(dagCfg)
 	for i, tt := range tests {
-		epoch := dag.CalcEpoch(dagCfg, tt.height)
-		datasetSize := dag.DatasetSize(dagCfg, epoch)
+		epoch := dagCfg.CalcEpoch(tt.height)
+		datasetSize := dagCfg.DatasetSize(epoch)
 		cache := dagClient.GetCache(epoch)
 
 		keccak512Hasher := crypto.NewKeccak512Hasher()
 		lookup := func(index uint32) []uint32 {
-			return dag.GenerateDatasetItem2048(dagCfg, cache.Cache(), index, keccak512Hasher)
+			return dagCfg.GenerateDatasetItem2048(cache.Cache(), index, keccak512Hasher)
 		}
 
 		mix, digest := compute(tt.hash, tt.height, tt.nonce, datasetSize, lookup, cache.L1())

@@ -17,23 +17,11 @@
 package dag
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
 )
-
-func cachePaths(cfg *Config, seed []byte) (string, string) {
-	cacheName := fmt.Sprintf("cache-%s-R%d-%x", cfg.Name, cfg.Revision, seed)
-	l1Name := fmt.Sprintf("l1-%s-R%d-%x", cfg.Name, cfg.Revision, seed)
-
-	cachePath := filepath.Join(cfg.StorageDir, cacheName)
-	l1Path := filepath.Join(cfg.StorageDir, l1Name)
-
-	return cachePath, l1Path
-}
 
 type cache struct {
 	epoch uint64
@@ -54,23 +42,24 @@ func (c *cache) L1() []uint32 {
 // generate ensures that the cache content is generated before use.
 func (c *cache) generate(cfg *Config) {
 	c.once.Do(func() {
-		size := CacheSize(cfg, c.epoch)
-		seed := SeedHash(cfg, c.epoch*cfg.EpochLength+1)
+		size := cfg.CacheSize(c.epoch)
+		seed := cfg.SeedHash(c.epoch*cfg.EpochLength + 1)
 
 		// If we don't store anything on disk, generate and return.
 		if cfg.StorageDir == "" {
 			c.cache.data = make([]uint32, size/4)
-			generateCache(cfg, c.cache.data, c.epoch, seed)
+			cfg.generateCache(c.cache.data, c.epoch, seed)
 
 			if cfg.L1Enabled {
 				c.l1.data = make([]uint32, cfg.L1CacheNumItems)
-				generateL1Cache(cfg, c.l1.data, c.cache.data)
+				cfg.generateL1Cache(c.l1.data, c.cache.data)
 			}
 
 			return
 		}
 
-		cachePath, l1Path := cachePaths(cfg, seed[:8])
+		cachePath := cfg.cacheStorageLocation(seed[:8])
+		l1Path := cfg.l1StorageLocation(seed[:8])
 
 		// We're about to mmap the file, ensure that the mapping is cleaned up when the
 		// cache becomes unused.
@@ -93,28 +82,31 @@ func (c *cache) generate(cfg *Config) {
 
 		// No usable previous cache available, create a new cache file to fill
 		if needsCache {
-			cacheGenerator := func(buffer []uint32) { generateCache(cfg, buffer, c.epoch, seed) }
+			cacheGenerator := func(buffer []uint32) { cfg.generateCache(buffer, c.epoch, seed) }
 			c.cache, err = memoryMapAndGenerate(cachePath, size, cfg.CachesLockMmap, cacheGenerator)
 			if err != nil {
 				c.cache.data = make([]uint32, size/4)
-				generateCache(cfg, c.cache.data, c.epoch, seed)
+				cfg.generateCache(c.cache.data, c.epoch, seed)
 			}
 		}
 
 		if needsL1 {
-			l1Generator := func(buffer []uint32) { generateL1Cache(cfg, buffer, c.cache.data) }
+			l1Generator := func(buffer []uint32) { cfg.generateL1Cache(buffer, c.cache.data) }
 			c.l1, err = memoryMapAndGenerate(l1Path, cfg.L1CacheSize, cfg.CachesLockMmap, l1Generator)
 			if err != nil {
 				c.l1.data = make([]uint32, cfg.L1CacheNumItems)
-				generateL1Cache(cfg, c.l1.data, c.cache.data)
+				cfg.generateL1Cache(c.l1.data, c.cache.data)
 			}
 		}
 
 		// Iterate over all previous instances and delete old ones
 		for ep := int(c.epoch) - cfg.CachesCount; ep >= 0; ep-- {
-			seed := SeedHash(cfg, uint64(ep)*cfg.EpochLength+1)
-			cachePath, l1Path := cachePaths(cfg, seed[:8])
+			seed := cfg.SeedHash(uint64(ep)*cfg.EpochLength + 1)
+
+			cachePath := cfg.cacheStorageLocation(seed[:8])
 			os.Remove(cachePath)
+
+			l1Path := cfg.l1StorageLocation(seed[:8])
 			os.Remove(l1Path)
 		}
 	})
