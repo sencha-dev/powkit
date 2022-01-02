@@ -69,11 +69,11 @@ func NewRavencoin() *Client {
 
 func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	epoch := c.CalcEpoch(height)
-	datasetSize := c.DatasetSize(epoch)
+	size := c.DatasetSize(epoch)
 	cache := c.GetCache(epoch)
 	lookup := c.NewLookupFunc2048(cache, epoch)
 
-	mix, digest := compute(hash, height, nonce, datasetSize, lookup, cache.L1())
+	mix, digest := kawpow(hash, height, nonce, size, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
 	return mix, digest

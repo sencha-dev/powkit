@@ -57,7 +57,7 @@ func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
 	cache := c.GetCache(epoch)
 	lookup := c.NewLookupFunc2048(cache, epoch)
 
-	mix, digest := compute(hash, height, nonce, datasetSize, lookup, cache.L1())
+	mix, digest := firopow(hash, height, nonce, datasetSize, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
 	return mix, digest

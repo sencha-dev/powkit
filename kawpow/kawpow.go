@@ -68,7 +68,7 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 	return digest
 }
 
-func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
+func kawpow(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
 	var cfg = &progpow.Config{
 		PeriodLength:        3,
 		DagLoads:            4,
