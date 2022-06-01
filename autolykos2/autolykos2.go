@@ -84,8 +84,8 @@ func (cfg *Config) genIndexes(seed []byte, n uint32) []uint32 {
 
 func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 	m := generateM(1024)
-	h := convutil.Uint32ToBytesBE(uint32(height))
-	nonceBytes := convutil.Uint64ToBytesBE(nonce)
+	h := convutil.Uint32ToBytes(uint32(height), binary.BigEndian)
+	nonceBytes := convutil.Uint64ToBytes(nonce, binary.BigEndian)
 
 	n := cfg.calcN(height)
 	bigN := new(big.Int).SetUint64(uint64(n))
@@ -94,7 +94,7 @@ func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 	msgHash := crypto.Blake2b256(fullMsg)
 	prei8 := new(big.Int).SetBytes(msgHash[24:32])
 
-	i := convutil.Uint32ToBytesBE(uint32(prei8.Mod(prei8, bigN).Uint64()))
+	i := convutil.Uint32ToBytes(uint32(prei8.Mod(prei8, bigN).Uint64()), binary.BigEndian)
 	f := crypto.Blake2b256(concatBytes(i, concatBytes(h, m)))[1:32]
 
 	seed := concatBytes(f, concatBytes(msg, nonceBytes))
@@ -102,7 +102,7 @@ func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 
 	f2 := new(big.Int)
 	for _, index := range indexes {
-		elem := concatBytes(convutil.Uint32ToBytesBE(index), concatBytes(h, m))
+		elem := concatBytes(convutil.Uint32ToBytes(index, binary.BigEndian), concatBytes(h, m))
 		elemHash := crypto.Blake2b256(elem)[1:]
 		f2.Add(f2, new(big.Int).SetBytes(elemHash))
 	}

@@ -5,6 +5,8 @@
 package progpow
 
 import (
+	"encoding/binary"
+
 	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
 	"github.com/sencha-dev/powkit/internal/dag"
@@ -136,5 +138,5 @@ func Hash(cfg *Config, height, seed, datasetSize uint64, lookup dag.LookupFunc, 
 		mixHash[l%numWords] = crypto.Fnv1a(mixHash[l%numWords], laneHash[l])
 	}
 
-	return convutil.Uint32ArrayToBytesLE(mixHash)
+	return convutil.Uint32ArrayToBytes(mixHash, binary.LittleEndian)
 }

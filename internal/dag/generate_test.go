@@ -17,6 +17,7 @@
 package dag
 
 import (
+	"encoding/binary"
 	"reflect"
 	"testing"
 
@@ -107,7 +108,7 @@ func TestCacheGeneration(t *testing.T) {
 		seed := d.SeedHash(uint64(tt.epoch)*d.EpochLength + 1)
 		d.generateCache(cache, tt.epoch, seed)
 
-		want := convutil.BytesToUint32ArrayLE(tt.cache)
+		want := convutil.BytesToUint32Array(tt.cache, binary.LittleEndian)
 		if !reflect.DeepEqual(cache, want) {
 			t.Errorf("failed on %d: cache mismatch: have %x, want %x", i, cache, want)
 		}
@@ -160,7 +161,7 @@ func TestCacheGenerationHashed(t *testing.T) {
 		seed := d.SeedHash(uint64(tt.epoch)*d.EpochLength + 1)
 		d.generateCache(cache, tt.epoch, seed)
 
-		raw := convutil.Uint32ArrayToBytesLE(cache)
+		raw := convutil.Uint32ArrayToBytes(cache, binary.LittleEndian)
 		hash := crypto.Keccak256(raw)
 
 		if !reflect.DeepEqual(hash, tt.hash) {

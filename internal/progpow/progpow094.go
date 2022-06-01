@@ -47,9 +47,7 @@ func finalize(seed [25]uint32, mixHash []byte) []byte {
 
 	crypto.KeccakF800(&state)
 
-	digest := convutil.Uint32ArrayToBytesLE(state[:8])
-
-	return digest
+	return convutil.Uint32ArrayToBytes(state[:8], binary.LittleEndian)
 }
 
 func compute(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
