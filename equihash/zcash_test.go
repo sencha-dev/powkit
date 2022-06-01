@@ -172,65 +172,21 @@ func TestIndicesFromMinimal(t *testing.T) {
 	}
 }
 
-func TestValidSolutionFull(t *testing.T) {
-	tests := []struct {
-		n     uint32
-		k     uint32
-		input []byte
-		nonce []byte
-		soln  []byte
-	}{
-		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
-			nonce: []byte{
-				1, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-			},
-			soln: []byte{
-				0x04, 0x6a, 0x8e, 0xd4, 0x51, 0xa2, 0x19, 0x73,
-				0x32, 0xe7, 0x1f, 0x39, 0xdb, 0x9c, 0x79, 0xfb,
-				0xf9, 0x3f, 0xc1, 0x44, 0x3d, 0xa5, 0x8f, 0xb3,
-				0x8d, 0x05, 0x99, 0x17, 0x21, 0x16, 0xd5, 0x55,
-				0xb1, 0xb2, 0x1f, 0x32, 0x70, 0x5c, 0xe9, 0x98,
-				0xf6, 0x0d, 0xa8, 0x52, 0xf7, 0x7f, 0x0e, 0x7f,
-				0x4d, 0x63, 0xfc, 0x2d, 0xd2, 0x30, 0xa3, 0xd9,
-				0x99, 0x53, 0xa0, 0x78, 0x7d, 0xfe, 0xfc, 0xab,
-				0x34, 0x1b, 0xde, 0xc8,
-			},
-		},
-	}
-
-	for i, tt := range tests {
-		valid, err := IsValidZCashSolution(tt.n, tt.k, tt.input, tt.nonce, tt.soln)
-		if err != nil {
-			t.Errorf("failed on test %d: %v", i, err)
-			continue
-		}
-
-		if !valid {
-			t.Errorf("failed on test %d: have false want true", i)
-			continue
-		}
-	}
-}
-
 func TestInvalidSolution(t *testing.T) {
 	tests := []struct {
-		n       uint32
-		k       uint32
-		input   []byte
-		nonce   []byte
-		indices []uint32
-		error   string
+		n        uint32
+		k        uint32
+		personal []byte
+		input    []byte
+		nonce    []byte
+		indices  []uint32
+		error    string
 	}{
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -247,9 +203,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "collision",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -266,9 +223,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "collision",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -285,9 +243,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "out of order",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -304,9 +263,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "out of order",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -323,9 +283,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "out of order",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -342,9 +303,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "out of order",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -361,9 +323,10 @@ func TestInvalidSolution(t *testing.T) {
 			error: "collision",
 		},
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -381,9 +344,10 @@ func TestInvalidSolution(t *testing.T) {
 		},
 
 		{
-			n:     96,
-			k:     5,
-			input: []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+			n:        96,
+			k:        5,
+			personal: []byte("ZcashPoW"),
+			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
 			nonce: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,
@@ -402,7 +366,7 @@ func TestInvalidSolution(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		valid, err := isValidSolutionIterative(tt.n, tt.k, tt.input, tt.nonce, tt.indices)
+		valid, err := isValidSolutionIterative(tt.n, tt.k, tt.personal, tt.input, tt.nonce, tt.indices)
 		if err.Error() != tt.error {
 			t.Errorf("failed on test %d: have %v want %s", i, err, tt.error)
 			continue

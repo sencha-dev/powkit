@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/sencha-dev/powkit/internal/common/convutil"
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
@@ -76,15 +77,15 @@ func hashLength(n, k uint32) uint32 {
 	return (k + 1) * collisionByteLength(n, k)
 }
 
-func blakePersonal(personal string, n, k uint32) []byte {
+func blakePersonal(personal []byte, n, k uint32) []byte {
 	nBytes := make([]byte, 4)
-	kBytes := make([]byte, 4)
-
 	binary.LittleEndian.PutUint32(nBytes, n)
+
+	kBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(kBytes, k)
 
 	personalBytes := bytes.Join([][]byte{
-		[]byte(personal),
+		personal,
 		nBytes,
 		kBytes,
 	}, nil)
@@ -112,7 +113,7 @@ func indicesFromMinimal(n, k uint32, minimal []byte) ([]uint32, error) {
 		return nil, err
 	}
 
-	return bytesToUint32ArrayBE(indices), nil
+	return convutil.BytesToUint32Array(indices, binary.BigEndian), nil
 }
 
 func hasCollision(a, b *node, len uint32) bool {
@@ -158,12 +159,12 @@ func (n *node) indicesBefore(b *node) bool {
 	return n.indices[0] < b.indices[0]
 }
 
-func newNode(n, k uint32, state []byte, i uint32) (*node, error) {
+func newNode(n, k uint32, personal, state []byte, i uint32) (*node, error) {
 	iBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(iBytes, i/indicesPerHashOutput(n))
 	state = bytes.Join([][]byte{state, iBytes}, nil)
 
-	hashPersonal := blakePersonal("ZcashPoW", n, k)
+	hashPersonal := blakePersonal(personal, n, k)
 	hashSize := int(hashOutput(n))
 	hash := crypto.Blake2b(state, hashPersonal, hashSize)
 
@@ -205,13 +206,13 @@ func newNodeFromChildrenRef(a, b *node, trim uint32) *node {
 	return n
 }
 
-func isValidSolutionIterative(n, k uint32, input, nonce []byte, indices []uint32) (bool, error) {
+func isValidSolutionIterative(n, k uint32, personal, input, nonce []byte, indices []uint32) (bool, error) {
 	var err error
 	state := bytes.Join([][]byte{input, nonce}, nil)
 
 	rows := make([]*node, len(indices))
 	for i := range indices {
-		rows[i], err = newNode(n, k, state, indices[i])
+		rows[i], err = newNode(n, k, personal, state, indices[i])
 		if err != nil {
 			return false, err
 		}
@@ -245,11 +246,11 @@ func isValidSolutionIterative(n, k uint32, input, nonce []byte, indices []uint32
 	return true, nil
 }
 
-func IsValidZCashSolution(n, k uint32, input, nonce, soln []byte) (bool, error) {
+func ZCashVerify(n, k uint32, personal, input, nonce, soln []byte) (bool, error) {
 	indices, err := indicesFromMinimal(n, k, soln)
 	if err != nil {
 		return false, err
 	}
 
-	return isValidSolutionIterative(n, k, input, nonce, indices)
+	return isValidSolutionIterative(n, k, personal, input, nonce, indices)
 }
