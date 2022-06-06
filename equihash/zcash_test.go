@@ -366,7 +366,7 @@ func TestInvalidSolution(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		valid, err := isValidSolutionIterative(tt.n, tt.k, tt.personal, tt.input, tt.nonce, tt.indices)
+		valid, err := isValidSolutionIterative(tt.n, tt.k, tt.personal, append(tt.input, tt.nonce...), tt.indices)
 		if err.Error() != tt.error {
 			t.Errorf("failed on test %d: have %v want %s", i, err, tt.error)
 			continue

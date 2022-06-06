@@ -20,6 +20,6 @@ func (cfg *Config) TraditionalVerify(seed, input []byte, nonce uint32) bool {
 	return TraditionalVerify(cfg.n, cfg.k, cfg.personal, seed, input, nonce)
 }
 
-func (cfg *Config) ZCashVerify(input, nonce, soln []byte) (bool, error) {
-	return ZCashVerify(cfg.n, cfg.k, cfg.personal, input, nonce, soln)
+func (cfg *Config) ZCashVerify(header, soln []byte) (bool, error) {
+	return ZCashVerify(cfg.n, cfg.k, cfg.personal, header, soln)
 }
