@@ -3,6 +3,7 @@
 package equihash
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/sencha-dev/powkit/internal/common/testutil"
@@ -41,21 +42,20 @@ func TestZCashVerify(t *testing.T) {
 		n        uint32
 		k        uint32
 		personal string
-		input    []byte
-		nonce    []byte
+		header   []byte
 		soln     []byte
 	}{
 		{
 			n:        96,
 			k:        5,
 			personal: "ZcashPoW",
-			input:    []byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
-			nonce: []byte{
-				1, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0,
-			},
+			header: bytes.Join([][]byte{
+				[]byte("Equihash is an asymmetric PoW based on the Generalised Birthday problem."),
+				[]byte{
+					1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				},
+			}, nil),
 			soln: []byte{
 				0x04, 0x6a, 0x8e, 0xd4, 0x51, 0xa2, 0x19, 0x73,
 				0x32, 0xe7, 0x1f, 0x39, 0xdb, 0x9c, 0x79, 0xfb,
@@ -71,7 +71,7 @@ func TestZCashVerify(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		valid, err := New(tt.n, tt.k, tt.personal).ZCashVerify(tt.input, tt.nonce, tt.soln)
+		valid, err := New(tt.n, tt.k, tt.personal).ZCashVerify(tt.header, tt.soln)
 		if err != nil {
 			t.Errorf("failed on test %d: %v", i, err)
 			continue

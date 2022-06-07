@@ -206,10 +206,8 @@ func newNodeFromChildrenRef(a, b *node, trim uint32) *node {
 	return n
 }
 
-func isValidSolutionIterative(n, k uint32, personal, input, nonce []byte, indices []uint32) (bool, error) {
+func isValidSolutionIterative(n, k uint32, personal, state []byte, indices []uint32) (bool, error) {
 	var err error
-	state := bytes.Join([][]byte{input, nonce}, nil)
-
 	rows := make([]*node, len(indices))
 	for i := range indices {
 		rows[i], err = newNode(n, k, personal, state, indices[i])
@@ -246,11 +244,11 @@ func isValidSolutionIterative(n, k uint32, personal, input, nonce []byte, indice
 	return true, nil
 }
 
-func ZCashVerify(n, k uint32, personal, input, nonce, soln []byte) (bool, error) {
+func ZCashVerify(n, k uint32, personal, header, soln []byte) (bool, error) {
 	indices, err := indicesFromMinimal(n, k, soln)
 	if err != nil {
 		return false, err
 	}
 
-	return isValidSolutionIterative(n, k, personal, input, nonce, indices)
+	return isValidSolutionIterative(n, k, personal, header, indices)
 }
