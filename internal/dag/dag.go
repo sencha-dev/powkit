@@ -108,11 +108,11 @@ func (d *DAG) calcCacheSize(epoch uint64) uint64 {
 }
 
 func (d *DAG) calcDatasetSize(epoch uint64) uint64 {
-	size := d.DatasetInitBytes + d.DatasetGrowthBytes*epoch - mixBytes
+	size := d.DatasetInitBytes + d.DatasetGrowthBytes*epoch - d.MixBytes
 
 	// Always accurate for n < 2^64
-	for !new(big.Int).SetUint64(size / mixBytes).ProbablyPrime(1) {
-		size -= 2 * mixBytes
+	for !new(big.Int).SetUint64(size / d.MixBytes).ProbablyPrime(1) {
+		size -= 2 * d.MixBytes
 	}
 
 	return size

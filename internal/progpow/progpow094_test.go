@@ -93,6 +93,7 @@ func TestProgpow094(t *testing.T) {
 			DatasetSizes: nil,
 			CacheSizes:   nil,
 
+			MixBytes:        128,
 			DatasetParents:  512,
 			EpochLength:     30000,
 			SeedEpochLength: 30000,

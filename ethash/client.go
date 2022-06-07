@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-//go:generate ../.bin/gen-lookup -package ethash -cacheInit 16777216 -cacheGrowth 131072 -datasetInit 1073741824 -datasetGrowth 8388608
+//go:generate ../.bin/gen-lookup -package ethash -mixBytes 128 -cacheInit 16777216 -cacheGrowth 131072 -datasetInit 1073741824 -datasetGrowth 8388608
 
 package ethash
 
@@ -51,6 +51,7 @@ func NewEthereum() *Client {
 		CacheSizes:   dag.NewLookupTable(cacheSizes, 2048),
 		DatasetSizes: dag.NewLookupTable(datasetSizes, 2048),
 
+		MixBytes:        128,
 		DatasetParents:  256,
 		EpochLength:     30000,
 		SeedEpochLength: 30000,

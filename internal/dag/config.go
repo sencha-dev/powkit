@@ -17,9 +17,8 @@
 package dag
 
 const (
-	mixBytes  = 128 // Width of mix
-	hashBytes = 64  // Hash length in bytes
-	hashWords = 16  // Number of 32 bit ints in a hash
+	hashBytes = 64 // Hash length in bytes
+	hashWords = 16 // Number of 32 bit ints in a hash
 )
 
 type LookupTable struct {
@@ -52,6 +51,7 @@ type Config struct {
 	CacheSizes   *LookupTable
 
 	// algorithm variables
+	MixBytes        uint64
 	DatasetParents  uint32
 	EpochLength     uint64
 	SeedEpochLength uint64 // ETC uses a different seed epoch length

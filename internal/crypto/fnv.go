@@ -6,17 +6,21 @@
 package crypto
 
 const (
-	fnvPrime uint32 = 0x01000193
+	FnvPrime = 0x01000193
 )
 
 // See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1_hash.
 func Fnv1(u, v uint32) uint32 {
-	return (u * fnvPrime) ^ v
+	return (u * FnvPrime) ^ v
+}
+
+func Fnv1Uint64(u, v uint64) uint64 {
+	return (u * FnvPrime) ^ v
 }
 
 // See https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash.
 func Fnv1a(u, v uint32) uint32 {
-	return (u ^ v) * fnvPrime
+	return (u ^ v) * FnvPrime
 }
 
 // fnvHash mixes in data into mix using the ethash fnv method.

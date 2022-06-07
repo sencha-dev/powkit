@@ -29,11 +29,12 @@ func genCacheLookupTable(initBytes, growthBytes uint64, epochs int) []uint64 {
 	return lookupTable
 }
 
-func genDatasetLookupTable(initBytes, growthBytes uint64, epochs int) []uint64 {
+func genDatasetLookupTable(mixBytes, initBytes, growthBytes uint64, epochs int) []uint64 {
 	d := &dag.DAG{
 		Config: dag.Config{
-			CacheInitBytes:   initBytes,
-			CacheGrowthBytes: growthBytes,
+			MixBytes:           mixBytes,
+			DatasetInitBytes:   initBytes,
+			DatasetGrowthBytes: growthBytes,
 		},
 	}
 
@@ -96,10 +97,11 @@ var datasetSizes = {{.DatasetLookup}}
 func main() {
 	var packageName string
 	var epochs int
-	var cacheInitBytes, cacheGrowthBytes, datasetInitBytes, datasetGrowthBytes uint64
+	var mixBytes, cacheInitBytes, cacheGrowthBytes, datasetInitBytes, datasetGrowthBytes uint64
 
 	flag.StringVar(&packageName, "package", "", "The package name where the lookup table will be generated")
 	flag.IntVar(&epochs, "epochs", 2048, "The number of epochs to generate for")
+	flag.Uint64Var(&mixBytes, "mixBytes", 128, "The number of bytes in a mix hash")
 	flag.Uint64Var(&cacheInitBytes, "cacheInit", 0, "The cache initialization size in bytes")
 	flag.Uint64Var(&cacheGrowthBytes, "cacheGrowth", 0, "The cache growth factor in bytes")
 	flag.Uint64Var(&datasetInitBytes, "datasetInit", 0, "The dataset initialization size in bytes")
@@ -111,7 +113,7 @@ func main() {
 	}
 
 	cacheLookupTable := genCacheLookupTable(cacheInitBytes, cacheGrowthBytes, epochs)
-	datasetLookupTable := genDatasetLookupTable(datasetInitBytes, datasetGrowthBytes, epochs)
+	datasetLookupTable := genDatasetLookupTable(mixBytes, datasetInitBytes, datasetGrowthBytes, epochs)
 
 	data := map[string]interface{}{
 		"Package":       packageName,
