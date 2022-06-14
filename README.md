@@ -17,9 +17,9 @@ All DAG-based algorithms only implement a light DAG, which is sufficient for ver
 but not full nodes or miners. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
 Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are stored), but verthash
 requires a strict 1.2Gb, so be careful if you're using verthash in memory. At the time of writing, running 
-`make test` will throw about 2.2Gb of data into `~/.powcache` due to the variety and breadth of tests.
+`make test` will throw about 3.3Gb of data into `~/.powcache` due to the variety and breadth of tests.
 
-# Supported Algorithms
+# Algorithms
 
 The estimated hash times are meant to be relative since
 it can vary across different hardware. All tests were run
@@ -27,17 +27,35 @@ with the respective DAG already calculated. In almost all cases hashing
 functions are the bottleneck (which is how PoW algorithms
 are designed to behave).
 
-| Algorithm   | DAG         | Estimated Hash Time       |
-| ----------- | ----------- | --------------------------|
-| Ethash      | yes         | 4ms                       |
-| Etchash     | yes         | 4ms                       |
-| Kawpow      | yes         | 17ms                      |
-| Firopow     | yes         | 18ms                      |
-| Verthash    | yes         | 8ms disk, 270μs in memory |
-| Equihash    | no          | 30μs                      |
-| Autolykos2  | no          | 580μs                     |
+| Algorithm     | DAG         | Supported |
+| ------------- | ----------- | ----------
+| Ethash        | yes         | yes
+| Etchash       | yes         | yes
+| Kawpow        | yes         | yes
+| Firopow       | yes         | yes
+| Octopus       | yes         | yes
+| Verthash      | yes         | yes
+| Equihash      | no          | yes
+| Autolykos2    | no          | yes
+| Cuckoo Cycle  | no          | yes
+| Eaglesong     | no          | yes
+| BeamHashIII   | no          | no
 
+# Things to Note
 
+  - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
+  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/5)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
+  there just isn't really a need at this point since Grin is fairly annoying. BlockCypher implements the other algorithms [here](https://github.com/blockcypher/libgrin/tree/master/core/pow).
+  - Equihash is built around ZCash's variation of Equihash. The original implementation is left for compatibility reasons, hopefully one day
+  I'll find a way to unify the two (though this may not be possible in a reasonable way). 
+  - All non-DAG algorithms are less organized than I would like, they'll probably be overhauled at some point for a more coherent general standard.
+  - All testing is done on linux, windows support is hazy at best. 
+  - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
+  - The base ProgPow implementation ("ProgPow094") exists in the `internal/progpow` package.
+  - One day I'll implement BeamHashIII, it is just a slight modification of Equihash (I think 150_5?). Other than that, there are no outstanding
+  algorithms that are planned - there is a [cryptonight](https://github.com/Equim-chan/cryptonight) and a 
+  [randomx](https://git.dero.io/DERO_Foundation/RandomX) implementation in Go, though these aren't really of interest. Of course, this can
+  change if new algorithms become popular.
 
 # Roadmap
 
@@ -50,7 +68,7 @@ as-needed basis.
 
 Currently, though powkit is used in production internally, it probably isn't a good idea to use yourself. The
 API is still in flux and each minor version will probably be breaking. Once we do a v1.0.0 release, the structure
-will probably be pretty set in stone. Hopefully that will happen in the next few months.
+will probably be pretty set in stone. 
 
 # References
 
@@ -62,4 +80,8 @@ will probably be pretty set in stone. Hopefully that will happen in the next few
   - [Firo: firo](https://github.com/firoorg/firo/tree/master/src/crypto/progpow)
   - [Ergo: ergo](https://github.com/ergoplatform/ergo/blob/0af9dd9d8846d672c1e2a77f8ab29963fa5acd1e/src/main/scala/org/ergoplatform/mining/AutolykosPowScheme.scala)
   - [leifjacky: erg-gominer-demo](https://github.com/leifjacky/erg-gominer-demo)
+  - [tromp: cuckoo](https://github.com/tromp/cuckoo)
+  - [Nervos Network: rfcs (eaglesong)](https://github.com/nervosnetwork/rfcs/tree/master/rfcs/0010-eaglesong)
+  - [Conflux Chain: conflux-rust (Octopus)](https://github.com/Conflux-Chain/conflux-rust/tree/8fdc0773ccc447f5f6af142e84ae507284f0e411/core/src/pow)
+
 
