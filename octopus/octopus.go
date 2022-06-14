@@ -90,11 +90,11 @@ func octopus(hash []byte, nonce, datasetSize uint64, lookup func(index uint32) [
 
 	warpID := nonce / powWarpSize
 	for i := 0; i < powWarpSize; i++ {
-		hasher := NewSipHasher(v0, v1, v2, v3)
-		hasher.hash24(warpID*powWarpSize + uint64(i))
+		hasher := crypto.NewSipHasher(v0, v1, v2, v3)
+		hasher.Hash24(warpID*powWarpSize + uint64(i))
 		for j := 0; j < powDataPerThread; j++ {
-			hasher.sipRound()
-			d[(j*powWarpSize + i)] = uint32((hasher.xorLanes() & math.MaxUint32) % powMod)
+			hasher.SipRound()
+			d[(j*powWarpSize + i)] = uint32((hasher.XorLanes() & math.MaxUint32) % powMod)
 		}
 	}
 
@@ -130,8 +130,6 @@ func octopus(hash []byte, nonce, datasetSize uint64, lookup func(index uint32) [
 	}
 
 	halfMix := make([]byte, nodeBytes)
-	compressBytes := make([]byte, 32)
-
 	copy(halfMix, hash)
 	binary.LittleEndian.PutUint64(halfMix[len(hash):], result)
 	halfMix = crypto.Keccak512(halfMix[:len(hash)+8])
@@ -159,9 +157,7 @@ func octopus(hash []byte, nonce, datasetSize uint64, lookup func(index uint32) [
 		}
 	}
 
-	compressWords := convutil.BytesToUint32Array(compressBytes, binary.LittleEndian)
-	// @TODO: compressWords := make([]uint32, 8)
-
+	compressWords := make([]uint32, 8)
 	for i := 0; i < 8; i++ {
 		w := i * 4
 		w2 := (8 + i) * 4
@@ -179,7 +175,7 @@ func octopus(hash []byte, nonce, datasetSize uint64, lookup func(index uint32) [
 		compressWords[i] = reduction*crypto.FnvPrime ^ reduction2
 	}
 
-	compressBytes = convutil.Uint32ArrayToBytes(compressWords, binary.LittleEndian)
+	compressBytes := convutil.Uint32ArrayToBytes(compressWords, binary.LittleEndian)
 	digest := crypto.Keccak256(append(mix[:nodeBytes], compressBytes...))
 
 	return digest
