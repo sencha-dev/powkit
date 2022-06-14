@@ -1,6 +1,6 @@
 # Verthash
 
-Most of this was borrowed from [verthash-go](https://github.com/gertjaap/verthash-go), though in the future I'm sure it'll begin to diverge.
+Most of this was borrowed from [verthash-go](https://github.com/gertjaap/verthash-go).
 
 Verthash requires a 1.2Gb file to be generated (in `~/.powcache`).
 It can be put into memory (which is about 10x faster than reading)

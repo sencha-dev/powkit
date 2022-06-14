@@ -77,5 +77,3 @@ will probably be pretty set in stone.
   - [tromp: cuckoo](https://github.com/tromp/cuckoo)
   - [Nervos Network: rfcs (eaglesong)](https://github.com/nervosnetwork/rfcs/tree/master/rfcs/0010-eaglesong)
   - [Conflux Chain: conflux-rust (Octopus)](https://github.com/Conflux-Chain/conflux-rust/tree/8fdc0773ccc447f5f6af142e84ae507284f0e411/core/src/pow)
-
-
