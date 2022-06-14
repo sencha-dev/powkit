@@ -19,7 +19,6 @@ type Config struct {
 	nIncreasementHeightMax uint64
 }
 
-// k = 32, n = 26
 func New(k, n int) *Config {
 	cfg := &Config{
 		k:                      k,
@@ -31,6 +30,10 @@ func New(k, n int) *Config {
 	}
 
 	return cfg
+}
+
+func NewErgo() *Config {
+	return New(32, 26)
 }
 
 /* helpers */
