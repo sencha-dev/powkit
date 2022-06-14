@@ -37,6 +37,9 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 # Things to Note
 
+  - There is no validation on hash input sizes - generally it is 32 bytes but it can vary by algorithm. It absolutely *can* panic
+  if the wrong input size is used. I probably should be stricter about this, or at least define what the expectations are, but for 
+  now the best way to check is in the tests.
   - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
   of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
   there just isn't really a need at this point since Grin is fairly annoying. BlockCypher implements the other algorithms [here](https://github.com/blockcypher/libgrin/tree/master/core/pow).
