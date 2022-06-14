@@ -21,12 +21,6 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 # Algorithms
 
-The estimated hash times are meant to be relative since
-it can vary across different hardware. All tests were run
-with the respective DAG already calculated. In almost all cases hashing 
-functions are the bottleneck (which is how PoW algorithms
-are designed to behave).
-
 | Algorithm     | DAG         | Supported |
 | ------------- | ----------- | ----------
 | Ethash        | yes         | yes
@@ -44,7 +38,7 @@ are designed to behave).
 # Things to Note
 
   - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
-  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/5)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
+  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
   there just isn't really a need at this point since Grin is fairly annoying. BlockCypher implements the other algorithms [here](https://github.com/blockcypher/libgrin/tree/master/core/pow).
   - Equihash is built around ZCash's variation of Equihash. The original implementation is left for compatibility reasons, hopefully one day
   I'll find a way to unify the two (though this may not be possible in a reasonable way). 
@@ -52,10 +46,10 @@ are designed to behave).
   - All testing is done on linux, windows support is hazy at best. 
   - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
   - The base ProgPow implementation ("ProgPow094") exists in the `internal/progpow` package.
-  - One day I'll implement BeamHashIII, it is just a slight modification of Equihash (I think 150_5?). Other than that, there are no outstanding
-  algorithms that are planned - there is a [cryptonight](https://github.com/Equim-chan/cryptonight) and a 
-  [randomx](https://git.dero.io/DERO_Foundation/RandomX) implementation in Go, though these aren't really of interest. Of course, this can
-  change if new algorithms become popular.
+  - One day I'll implement BeamHashIII, it is just a slight modification of Equihash (I think 150_5?). Other than that, no other
+  algorithms are planned - there is a [cryptonight](https://github.com/Equim-chan/cryptonight) and a 
+  [randomx](https://git.dero.io/DERO_Foundation/RandomX) implementation in Go, though these aren't really of interest. 
+  Of course, this can change if new algorithms become popular.
 
 # Roadmap
 
