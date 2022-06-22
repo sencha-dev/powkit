@@ -1,5 +1,4 @@
 # Equihash
 
-There are two variations of Equihash - the initial implementation and the ZCash variation. 
-As of now, they are completely incompatible. Perhaps one day they'll end up being properly
-unified but both work separately for now. 
+This implementation is the ZCash variation of Equihash (the original implementation is scarcely used), along
+with the modifications ("twisting" of the Blake hash) required by Zelhash.

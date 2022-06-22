@@ -46,8 +46,6 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
   - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
   of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
   there just isn't really a need at this point since Grin is fairly annoying. BlockCypher implements the other algorithms [here](https://github.com/blockcypher/libgrin/tree/master/core/pow).
-  - Equihash is built around ZCash's variation of Equihash. The original implementation is left for compatibility reasons, hopefully one day
-  I'll find a way to unify the two (though this may not be possible in a reasonable way). 
   - All non-DAG algorithms are less organized than I would like, they'll probably be overhauled at some point for a more coherent general standard.
   - All testing is done on linux, windows support is hazy at best. 
   - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
