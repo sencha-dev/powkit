@@ -8,10 +8,10 @@
 *Note: This library is still in active development and is
 subject to breaking changes*
 
-Though there are a wide variety of Proof of Work algorithms, finding the technical details
-for the implementations is quite a task. Both Kawpow and Firopow are variations off of ProgPow,
-though finding the exact differences is painful. This is meant to be a unified library to
-make the implementation of existing Proof of Work algorithms easier. 
+Even though there are a wide variety of Proof of Work algorithms, finding the technical details
+for the implementations is quite a task. For example, both Kawpow and Firopow are variations off of ProgPow
+but finding the exact differences is painful. This is meant to be a unified library to
+make the specification of existing Proof of Work algorithms more standardized. 
 
 All DAG-based algorithms only implement a light DAG, which is sufficient for validation
 but not full nodes or miners. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
@@ -38,7 +38,7 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 # Things to Note
 
-  - Most of these algorithms are partially optimized but I'm sure they could be improvemed. That being said, that will probably never happen
+  - Most of these algorithms are partially optimized but I'm sure they could be improved. That being said, that will probably never happen
   since these have never been intended to be used for miner clients. All of these algorithms far surpass a reasonable threshold for performance and I
   have no intention of hypertuning them.
   - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
@@ -49,7 +49,7 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
   - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
   - As of now, the only other algorithms that are on the list of "maybes" are: [cryptonight](https://github.com/Equim-chan/cryptonight),
   [randomx](https://git.dero.io/DERO_Foundation/RandomX), X25X, and the full 
-  cuckoo suite ([cuckatoo, cuckaroo]((https://github.com/blockcypher/libgrin/tree/master/core/pow)). 
+  cuckoo suite ([cuckatoo, cuckaroo](https://github.com/blockcypher/libgrin/tree/master/core/pow)). 
 
 # Roadmap
 
