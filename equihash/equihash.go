@@ -3,7 +3,6 @@
 package equihash
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 
@@ -35,22 +34,6 @@ func hashOutput(n uint32) uint32 {
 
 func hashLength(n, k uint32) uint32 {
 	return (k + 1) * collisionByteLength(n, k)
-}
-
-func blakePersonal(personal []byte, n, k uint32) []byte {
-	nBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(nBytes, n)
-
-	kBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(kBytes, k)
-
-	personalBytes := bytes.Join([][]byte{
-		personal,
-		nBytes,
-		kBytes,
-	}, nil)
-
-	return personalBytes
 }
 
 func expandArray(input []byte, bitLen, bytePad uint32) ([]byte, error) {
@@ -97,9 +80,7 @@ func indicesFromMinimal(n, k uint32, minimal []byte) ([]uint32, error) {
 
 	if minimalLen != ((1<<k)*(cBitLen+1))/8 {
 		return nil, fmt.Errorf("invalid minimal for parameters")
-	}
-
-	if (((cBitLen + 1) + 7) / 8) > 4 {
+	} else if (((cBitLen + 1) + 7) / 8) > 4 {
 		return nil, fmt.Errorf("invalid n, k parameters")
 	}
 
@@ -110,49 +91,6 @@ func indicesFromMinimal(n, k uint32, minimal []byte) ([]uint32, error) {
 	}
 
 	return convutil.BytesToUint32Array(indices, binary.BigEndian), nil
-}
-
-func hasCollision(a, b *node, len uint32) bool {
-	for i := uint32(0); i < len; i++ {
-		if a.hash[i] != b.hash[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func distinctIndices(a, b *node) bool {
-	for _, i := range a.indices {
-		for _, j := range b.indices {
-			if i == j {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-func validateSubtrees(n, k uint32, a, b *node) error {
-	if !hasCollision(a, b, collisionByteLength(n, k)) {
-		return fmt.Errorf("collision")
-	} else if b.indicesBefore(a) {
-		return fmt.Errorf("out of order")
-	} else if !distinctIndices(a, b) {
-		return fmt.Errorf("duplicate indices")
-	}
-
-	return nil
-}
-
-type node struct {
-	hash    []byte
-	indices []uint32
-}
-
-func (n *node) indicesBefore(b *node) bool {
-	return n.indices[0] < b.indices[0]
 }
 
 func hashBlakeWithOffset(initialState, personalState []byte, offset, hashLength uint32) []byte {
@@ -185,11 +123,14 @@ func generateHash(initialState, personalState []byte, g, hashLength uint32, twis
 	return hash
 }
 
-func newNode(n, k uint32, personal []byte, twist bool, state []byte, i uint32) (*node, error) {
+type node struct {
+	hash    []byte
+	indices []uint32
+}
+
+func newNode(n, k uint32, personalState []byte, twist bool, state []byte, i uint32) (*node, error) {
 	g := i / indicesPerHashOutput(n)
-	hashLength := hashOutput(n)
-	personalState := blakePersonal(personal, n, k)
-	hash := generateHash(state, personalState, g, hashLength, twist)
+	hash := generateHash(state, personalState, g, hashOutput(n), twist)
 
 	start := (i % indicesPerHashOutput(n)) * ((n + 7) / 8)
 	end := start + ((n + 7) / 8)
@@ -213,7 +154,7 @@ func newNodeFromChildrenRef(a, b *node, trim uint32) *node {
 	}
 
 	indices := make([]uint32, 0)
-	if a.indicesBefore(b) {
+	if a.indices[0] < b.indices[0] {
 		indices = append(indices, a.indices...)
 		indices = append(indices, b.indices...)
 	} else {
@@ -229,49 +170,70 @@ func newNodeFromChildrenRef(a, b *node, trim uint32) *node {
 	return n
 }
 
-func isValidSolutionIterative(n, k uint32, personal []byte, twist bool, state []byte, indices []uint32) (bool, error) {
-	var err error
-	rows := make([]*node, len(indices))
-	for i := range indices {
-		rows[i], err = newNode(n, k, personal, twist, state, indices[i])
-		if err != nil {
-			return false, err
+func validateSubtrees(n, k uint32, a, b *node) error {
+	// check hasCollision
+	for i := uint32(0); i < collisionByteLength(n, k); i++ {
+		if a.hash[i] != b.hash[i] {
+			return fmt.Errorf("collision")
 		}
 	}
 
-	hashLen := hashLength(n, k)
-	for len(rows) > 1 {
-		curRows := make([]*node, 0)
-		for i := 0; i < len(rows); i += 2 {
-			a := rows[i]
-			b := rows[i+1]
-			err := validateSubtrees(n, k, a, b)
-			if err != nil {
-				return false, err
+	// check indicesBefore
+	if b.indices[0] < a.indices[0] {
+		return fmt.Errorf("out of order")
+	}
+
+	// check distinctIndices
+	for _, i := range a.indices {
+		for _, j := range b.indices {
+			if i == j {
+				return fmt.Errorf("duplicate indices")
 			}
-
-			row := newNodeFromChildrenRef(a, b, collisionByteLength(n, k))
-			curRows = append(curRows, row)
-		}
-
-		rows = curRows
-		hashLen -= collisionByteLength(n, k)
-	}
-
-	for i := uint32(0); i < hashLen; i++ {
-		if rows[0].hash[i] != 0 {
-			return false, nil
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
-func verify(n, k uint32, personal []byte, twist bool, header, soln []byte) (bool, error) {
+func verify(n, k uint32, personal, header, soln []byte, twist bool) (bool, error) {
+	personalState := make([]byte, len(personal)+8)
+	copy(personalState, personal)
+	binary.LittleEndian.PutUint32(personalState[len(personal):], n)
+	binary.LittleEndian.PutUint32(personalState[len(personal)+4:], k)
+
 	indices, err := indicesFromMinimal(n, k, soln)
 	if err != nil {
 		return false, err
 	}
 
-	return isValidSolutionIterative(n, k, personal, twist, header, indices)
+	rows := make([]*node, len(indices))
+	for i := range indices {
+		rows[i], err = newNode(n, k, personalState, twist, header, indices[i])
+		if err != nil {
+			return false, err
+		}
+	}
+
+	for len(rows) > 1 {
+		curRows := make([]*node, 0)
+		for i := 0; i < len(rows); i += 2 {
+			err := validateSubtrees(n, k, rows[i], rows[i+1])
+			if err != nil {
+				return false, err
+			}
+
+			row := newNodeFromChildrenRef(rows[i], rows[i+1], collisionByteLength(n, k))
+			curRows = append(curRows, row)
+		}
+
+		rows = curRows
+	}
+
+	for _, v := range rows[0].hash {
+		if v != 0 {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
