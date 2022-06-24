@@ -3,64 +3,13 @@ package verthash
 import (
 	"bytes"
 	"encoding/binary"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 
-	"github.com/sencha-dev/powkit/internal/common"
 	"github.com/sencha-dev/powkit/internal/crypto"
 
 	"golang.org/x/crypto/sha3"
 )
 
-type Verthash struct {
-	data []byte
-	file *os.File
-}
-
-func New(inMemory bool) (*Verthash, error) {
-	path := filepath.Join(common.DefaultDir(".powcache"), "verthash.dat")
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		writeGraph(path)
-	}
-
-	err := validateGraph(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var data []byte
-	var file *os.File
-
-	if inMemory {
-		data, err = ioutil.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		file, err = os.Open(path)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	client := &Verthash{
-		data: data,
-		file: file,
-	}
-
-	return client, nil
-}
-
-func (v *Verthash) Close() {
-	if v.data != nil {
-		v.data = []byte{}
-	} else {
-		v.file.Close()
-	}
-}
-
-func (v *Verthash) Hash(input []byte) []byte {
+func verthash(data, input []byte) []byte {
 	p1 := [32]byte{}
 
 	inputCopy := make([]byte, len(input))
@@ -98,15 +47,7 @@ func (v *Verthash) Hash(input []byte) []byte {
 	}
 	for i := uint32(0); i < verthashIndexes; i++ {
 		offset := (crypto.Fnv1a(seekIndexes[i], valueAccumulator) % mdiv) * verthashByteAlignment
-
-		data := make([]byte, 32)
-		if v.data != nil {
-			data = v.data[offset : offset+verthashHashOutSize]
-		} else {
-			v.file.Seek(int64(offset), 0)
-			v.file.Read(data)
-		}
-
+		data := data[offset : offset+verthashHashOutSize]
 		for i2 := uint32(0); i2 < verthashHashOutSize/4; i2++ {
 			value := binary.LittleEndian.Uint32(data[i2*4 : ((i2 + 1) * 4)])
 			p1Arr[i2] = crypto.Fnv1a(p1Arr[i2], value)

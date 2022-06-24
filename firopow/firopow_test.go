@@ -404,13 +404,12 @@ func TestComputeFiro(t *testing.T) {
 
 	client := NewFiro()
 	for i, tt := range tests {
-		mix, digest := client.Compute(tt.height, tt.nonce, tt.hash)
-
-		if bytes.Compare(mix, tt.mix) != 0 {
+		mix, digest, err := client.Compute(tt.hash, tt.height, tt.nonce)
+		if err != nil {
+			t.Errorf("failed on %d: %v", i, err)
+		} else if bytes.Compare(mix, tt.mix) != 0 {
 			t.Errorf("failed on %d: mix mismatch: have %x, want %x", i, mix, tt.mix)
-		}
-
-		if bytes.Compare(digest, tt.digest) != 0 {
+		} else if bytes.Compare(digest, tt.digest) != 0 {
 			t.Errorf("failed on %d: digest mismatch: have %x, want %x", i, digest, tt.digest)
 		}
 	}

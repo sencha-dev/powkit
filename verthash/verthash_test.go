@@ -7,10 +7,6 @@ import (
 	"github.com/sencha-dev/powkit/internal/common/testutil"
 )
 
-func TestGenerate(t *testing.T) {
-	New(false)
-}
-
 func TestVerify(t *testing.T) {
 	tests := []struct {
 		input  []byte
@@ -22,18 +18,16 @@ func TestVerify(t *testing.T) {
 		},
 	}
 
-	verthash, err := New(true)
+	verthash, err := New()
 	if err != nil {
 		t.Errorf("failed on new verthash: %v", err)
 		return
 	}
-	defer verthash.Close()
 
 	for i, tt := range tests {
-		h := verthash.Hash(tt.input)
-
-		if !bytes.Equal(h[:], tt.output) {
-			t.Errorf("mismatch on verthash verify test %d: have %x want %x", i, h, tt.output)
+		digest := verthash.Compute(tt.input)
+		if !bytes.Equal(digest, tt.output) {
+			t.Errorf("failed on %d: digest mismatch: have %x, want %x", i, digest, tt.output)
 		}
 	}
 }

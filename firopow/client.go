@@ -3,6 +3,7 @@
 package firopow
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/sencha-dev/powkit/internal/common"
@@ -10,12 +11,12 @@ import (
 )
 
 type Client struct {
-	*dag.DAG
+	data *dag.DAG
 }
 
 func New(cfg dag.Config) *Client {
 	client := &Client{
-		DAG: dag.New(cfg),
+		data: dag.New(cfg),
 	}
 
 	return client
@@ -52,14 +53,18 @@ func NewFiro() *Client {
 	return New(cfg)
 }
 
-func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := c.CalcEpoch(height)
-	datasetSize := c.DatasetSize(epoch)
-	cache := c.GetCache(epoch)
-	lookup := c.NewLookupFunc2048(cache, epoch)
+func (c *Client) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
+	if len(hash) != 32 {
+		return nil, nil, fmt.Errorf("hash must be 32 bytes")
+	}
 
-	mix, digest := firopow(hash, height, nonce, datasetSize, lookup, cache.L1())
+	epoch := c.data.CalcEpoch(height)
+	size := c.data.DatasetSize(epoch)
+	cache := c.data.GetCache(epoch)
+	lookup := c.data.NewLookupFunc2048(cache, epoch)
+
+	mix, digest := firopow(hash, height, nonce, size, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
-	return mix, digest
+	return mix, digest, nil
 }

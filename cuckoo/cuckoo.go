@@ -3,39 +3,43 @@
 package cuckoo
 
 import (
+	"fmt"
+)
+
+import (
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
-func (cfg *Config) sipnode(siphashKeys [4]uint64, edge, uorv uint64) uint64 {
+func sipnode(edgeMask uint64, siphashKeys [4]uint64, edge, uorv uint64) uint64 {
 	hasher := crypto.NewSipHasher(siphashKeys[0], siphashKeys[1], siphashKeys[2], siphashKeys[3])
 	hasher.Hash24(2*edge + uorv)
 
 	value := hasher.XorLanes()
 	value = value<<17 | value>>47
 
-	return value & cfg.edgeMask
+	return value & edgeMask
 }
 
-func (cfg *Config) verify(siphashKeys [4]uint64, edges []uint64) bool {
-	uvs := make([]uint64, 2*cfg.proofSize)
+func verify(proofSize int, edgeMask uint64, siphashKeys [4]uint64, edges []uint64) (bool, error) {
+	uvs := make([]uint64, 2*proofSize)
 	var xor0, xor1 uint64
 
-	for n := 0; n < cfg.proofSize; n++ {
-		if edges[n] > cfg.edgeMask {
-			return false // POW_TOO_BIG
+	for n := 0; n < proofSize; n++ {
+		if edges[n] > edgeMask {
+			return false, fmt.Errorf("pow too big")
 		} else if n < 0 && edges[n] <= edges[n-1] {
-			return false // POW_TOO_SMALL
+			return false, fmt.Errorf("pow too small")
 		}
 
-		uvs[2*n] = cfg.sipnode(siphashKeys, edges[n], 0)
+		uvs[2*n] = sipnode(edgeMask, siphashKeys, edges[n], 0)
 		xor0 ^= uvs[2*n]
 
-		uvs[2*n+1] = cfg.sipnode(siphashKeys, edges[n], 1)
+		uvs[2*n+1] = sipnode(edgeMask, siphashKeys, edges[n], 1)
 		xor1 ^= uvs[2*n+1]
 	}
 
 	if xor0|xor1 != 0 {
-		return false // POW_NON_MATCHING
+		return false, fmt.Errorf("pow not matching")
 	}
 
 	var i, j, n int
@@ -44,14 +48,14 @@ func (cfg *Config) verify(siphashKeys [4]uint64, edges []uint64) bool {
 		k := j
 
 		for {
-			k = (k + 2) % (2 * cfg.proofSize)
+			k = (k + 2) % (2 * proofSize)
 			if k == i {
 				break
 			}
 
 			if uvs[k] == uvs[i] {
 				if j != i {
-					return false // POW_BRANCH
+					return false, fmt.Errorf("pow branch")
 				}
 
 				j = k
@@ -59,7 +63,7 @@ func (cfg *Config) verify(siphashKeys [4]uint64, edges []uint64) bool {
 		}
 
 		if j == i {
-			return false // POW_DEAD_END
+			return false, fmt.Errorf("pow dead end")
 		}
 
 		i = j ^ 1
@@ -70,5 +74,9 @@ func (cfg *Config) verify(siphashKeys [4]uint64, edges []uint64) bool {
 		}
 	}
 
-	return n == cfg.proofSize // POW_SHORT_CYCLE
+	if n != proofSize {
+		return false, fmt.Errorf("pow short cycle")
+	}
+
+	return true, nil
 }

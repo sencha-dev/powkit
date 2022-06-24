@@ -1,24 +1,9 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of the go-ethereum library.
-//
-// The go-ethereum library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// The go-ethereum library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
-
 //go:generate ../.bin/gen-lookup -package kawpow -mixBytes 128 -cacheInit 16777216 -cacheGrowth 131072 -datasetInit 1073741824 -datasetGrowth 8388608
 
 package kawpow
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/sencha-dev/powkit/internal/common"
@@ -26,12 +11,12 @@ import (
 )
 
 type Client struct {
-	*dag.DAG
+	data *dag.DAG
 }
 
 func New(cfg dag.Config) *Client {
 	client := &Client{
-		DAG: dag.New(cfg),
+		data: dag.New(cfg),
 	}
 
 	return client
@@ -68,14 +53,18 @@ func NewRavencoin() *Client {
 	return New(cfg)
 }
 
-func (c *Client) Compute(height, nonce uint64, hash []byte) ([]byte, []byte) {
-	epoch := c.CalcEpoch(height)
-	size := c.DatasetSize(epoch)
-	cache := c.GetCache(epoch)
-	lookup := c.NewLookupFunc2048(cache, epoch)
+func (c *Client) Compute(hash []byte, height, nonce uint64) ([]byte, []byte, error) {
+	if len(hash) != 32 {
+		return nil, nil, fmt.Errorf("hash must be 32 bytes")
+	}
+
+	epoch := c.data.CalcEpoch(height)
+	size := c.data.DatasetSize(epoch)
+	cache := c.data.GetCache(epoch)
+	lookup := c.data.NewLookupFunc2048(cache, epoch)
 
 	mix, digest := kawpow(hash, height, nonce, size, lookup, cache.L1())
 	runtime.KeepAlive(cache)
 
-	return mix, digest
+	return mix, digest, nil
 }

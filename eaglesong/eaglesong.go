@@ -2,8 +2,8 @@
 
 package eaglesong
 
-func (cfg *Config) permutation(state []uint32) {
-	for i := 0; i < cfg.rounds; i++ {
+func permute(rounds int, state []uint32) {
+	for i := 0; i < rounds; i++ {
 		temp := make([]uint32, 16)
 		for j := 0; j < 16; j++ {
 			for k := 0; k < 16; k++ {
@@ -39,34 +39,36 @@ func (cfg *Config) permutation(state []uint32) {
 	}
 }
 
-func (cfg *Config) eaglesong(input []byte) []byte {
+func eaglesong(rounds, capacity, rate int, delim byte, input []byte) []byte {
 	// absorbing
 	state := make([]uint32, 16)
-	for i := 0; i < ((len(input)+1)*8+cfg.rate-1)/cfg.rate; i++ {
-		for j := 0; j < cfg.rate/32; j++ {
+	for i := 0; i < ((len(input)+1)*8+rate-1)/rate; i++ {
+		for j := 0; j < rate/32; j++ {
 			var integer uint32
 			for k := 0; k < 4; k++ {
-				if i*cfg.rate/8+j*4+k < len(input) {
-					integer = (integer << 8) ^ uint32(input[i*cfg.rate/8+j*4+k])
-				} else if i*cfg.rate/8+j*4+k == len(input) {
-					integer = (integer << 8) ^ uint32(cfg.delim)
+				if i*rate/8+j*4+k < len(input) {
+					integer = (integer << 8) ^ uint32(input[i*rate/8+j*4+k])
+				} else if i*rate/8+j*4+k == len(input) {
+					integer = (integer << 8) ^ uint32(delim)
 				}
 			}
 
 			state[j] = state[j] ^ integer
 		}
-		cfg.permutation(state)
+
+		permute(rounds, state)
 	}
 
 	// squeezing
-	output := make([]byte, cfg.capacity)
-	for i := 0; i < cfg.capacity/(cfg.rate/8); i++ {
-		for j := 0; j < cfg.rate/32; j++ {
+	output := make([]byte, capacity)
+	for i := 0; i < capacity/(rate/8); i++ {
+		for j := 0; j < rate/32; j++ {
 			for k := 0; k < 4; k++ {
-				output[i*cfg.rate/8+j*4+k] = byte((state[j] >> (8 * k)) & 0xff)
+				output[i*rate/8+j*4+k] = byte((state[j] >> (8 * k)) & 0xff)
 			}
 		}
-		cfg.permutation(state)
+
+		permute(rounds, state)
 	}
 
 	return output

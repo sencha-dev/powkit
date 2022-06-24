@@ -18,9 +18,8 @@ func TestEaglesong(t *testing.T) {
 		},
 	}
 
-	client := NewNervos()
 	for i, tt := range tests {
-		digest := client.Compute(tt.input)
+		digest := NewNervos().Compute(tt.input)
 		if bytes.Compare(digest, tt.digest) != 0 {
 			t.Errorf("failed on %d: digest mismatch: have %x, want %x", i, digest, tt.digest)
 		}

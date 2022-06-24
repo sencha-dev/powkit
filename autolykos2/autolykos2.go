@@ -8,35 +8,11 @@ import (
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
-/* config */
-
-type Config struct {
-	k                      int
-	n                      int
-	nBase                  uint32
-	increaseStart          uint64
-	increasePeriodForN     uint64
-	nIncreasementHeightMax uint64
-}
-
-func New(k, n int) *Config {
-	cfg := &Config{
-		k:                      k,
-		n:                      n,
-		nBase:                  1 << n,
-		increaseStart:          600 * 1024,
-		increasePeriodForN:     50 * 1024,
-		nIncreasementHeightMax: 4198400,
-	}
-
-	return cfg
-}
-
-func NewErgo() *Config {
-	return New(32, 26)
-}
-
-/* helpers */
+const (
+	increaseStart          = 600 * 1024
+	increasePeriodForN     = 50 * 1024
+	nIncreasementHeightMax = 4198400
+)
 
 func concatBytes(a, b []byte) []byte {
 	c := make([]byte, len(a), len(a)+len(b))
@@ -55,16 +31,14 @@ func generateM(size uint64) []byte {
 	return m
 }
 
-/* algorithm */
-
-func (cfg *Config) calcN(height uint64) uint32 {
-	if height > cfg.nIncreasementHeightMax {
+func calcN(nBase uint32, height uint64) uint32 {
+	if height > nIncreasementHeightMax {
 		return 2143944600
 	}
 
-	n := cfg.nBase
-	if height >= cfg.increaseStart {
-		iters := int((height-cfg.increaseStart)/cfg.increasePeriodForN + 1)
+	var n uint32 = nBase
+	if height >= increaseStart {
+		iters := int((height-increaseStart)/increasePeriodForN + 1)
 		for i := 0; i < iters; i++ {
 			n = (n / 100) * 105
 		}
@@ -73,11 +47,11 @@ func (cfg *Config) calcN(height uint64) uint32 {
 	return n
 }
 
-func (cfg *Config) genIndexes(seed []byte, n uint32) []uint32 {
+func genIndexes(seed []byte, k, n uint32) []uint32 {
 	hash := crypto.Blake2b256(seed)
 	extendedHash := append(hash, hash...)
 
-	indexes := make([]uint32, cfg.k)
+	indexes := make([]uint32, k)
 	for i := range indexes {
 		indexes[i] = binary.BigEndian.Uint32(extendedHash[i:i+4]) % n
 	}
@@ -85,12 +59,12 @@ func (cfg *Config) genIndexes(seed []byte, n uint32) []uint32 {
 	return indexes
 }
 
-func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
+func compute(k, nBase uint32, msg []byte, nonce, height uint64) []byte {
 	m := generateM(1024)
 	h := convutil.Uint32ToBytes(uint32(height), binary.BigEndian)
 	nonceBytes := convutil.Uint64ToBytes(nonce, binary.BigEndian)
 
-	n := cfg.calcN(height)
+	n := calcN(nBase, height)
 	bigN := new(big.Int).SetUint64(uint64(n))
 
 	fullMsg := concatBytes(msg, nonceBytes)
@@ -101,7 +75,7 @@ func (cfg *Config) Compute(msg []byte, nonce, height uint64) []byte {
 	f := crypto.Blake2b256(concatBytes(i, concatBytes(h, m)))[1:32]
 
 	seed := concatBytes(f, concatBytes(msg, nonceBytes))
-	indexes := cfg.genIndexes(seed, n)
+	indexes := genIndexes(seed, k, n)
 
 	f2 := new(big.Int)
 	for _, index := range indexes {

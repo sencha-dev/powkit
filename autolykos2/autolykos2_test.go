@@ -7,51 +7,61 @@ import (
 	"github.com/sencha-dev/powkit/internal/common/testutil"
 )
 
-func TestCalcNErgo(t *testing.T) {
+func TestCalcN(t *testing.T) {
 	tests := []struct {
+		nBase  uint32
 		height uint64
 		value  uint32
 	}{
 		{
+			nBase:  1 << 26,
 			height: 500000,
 			value:  67108864,
 		},
 		{
+			nBase:  1 << 26,
 			height: 600000,
 			value:  67108864,
 		},
 		{
+			nBase:  1 << 26,
 			height: 614400,
 			value:  70464240,
 		},
 		{
+			nBase:  1 << 26,
 			height: 665600,
 			value:  73987410,
 		},
 		{
+			nBase:  1 << 26,
 			height: 700000,
 			value:  73987410,
 		},
 		{
+			nBase:  1 << 26,
 			height: 788400,
 			value:  81571035,
 		},
 		{
+			nBase:  1 << 26,
 			height: 1051200,
 			value:  104107290,
 		},
 		{
+			nBase:  1 << 26,
 			height: 4198400,
 			value:  2143944600,
 		},
 		{
+			nBase:  1 << 26,
 			height: 41984000,
 			value:  2143944600,
 		},
 	}
 
 	for i, tt := range tests {
-		value := NewErgo().calcN(tt.height)
+		value := calcN(tt.nBase, tt.height)
 		if value != tt.value {
 			t.Errorf("failed on %d: have %d, want %d", i, value, tt.value)
 		}
@@ -86,8 +96,10 @@ func TestComputeErgo(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		result := NewErgo().Compute(tt.msg, tt.nonce, tt.height)
-		if bytes.Compare(result, tt.result) != 0 {
+		result, err := NewErgo().Compute(tt.msg, tt.height, tt.nonce)
+		if err != nil {
+			t.Errorf("failed on %d: %v", i, err)
+		} else if bytes.Compare(result, tt.result) != 0 {
 			t.Errorf("failed on %d: have %x, want %x", i, result, tt.result)
 		}
 	}

@@ -3,11 +3,12 @@ package cuckoo
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
-type Config struct {
+type Client struct {
 	proofSize int
 	edgeBits  int
 	edgeMask  uint64
@@ -15,26 +16,29 @@ type Config struct {
 	nodeMask  uint64
 }
 
-func New(edgeBits, nodeBits, proofSize int) *Config {
-	edgeNum := uint64(1) << edgeBits
-	nodeNum := uint64(1) << nodeBits
-
-	cfg := &Config{
+func New(edgeBits, nodeBits, proofSize int) *Client {
+	c := &Client{
 		proofSize: proofSize,
 		edgeBits:  edgeBits,
-		edgeMask:  edgeNum - 1,
+		edgeMask:  (uint64(1) << edgeBits) - 1,
 		nodeBits:  nodeBits,
-		nodeMask:  nodeNum - 1,
+		nodeMask:  (uint64(1) << nodeBits) - 1,
 	}
 
-	return cfg
+	return c
 }
 
-func NewAeternity() *Config {
+func NewAeternity() *Client {
 	return New(29, 29, 42)
 }
 
-func (cfg *Config) Verify(hash []byte, nonce uint64, sols []uint64) bool {
+func (c *Client) Verify(hash []byte, nonce uint64, sols []uint64) (bool, error) {
+	if len(hash) != 32 {
+		return false, fmt.Errorf("hash must be 32 bytes")
+	} else if len(sols) != 42 {
+		return false, fmt.Errorf("sols must be 42 uint64s")
+	}
+
 	// encode header
 	nonceBytes := make([]uint8, 8)
 	binary.LittleEndian.PutUint64(nonceBytes, nonce)
@@ -51,5 +55,5 @@ func (cfg *Config) Verify(hash []byte, nonce uint64, sols []uint64) bool {
 		binary.LittleEndian.Uint64(h[24:32]),
 	}
 
-	return cfg.verify(keys, sols)
+	return verify(c.proofSize, c.edgeMask, keys, sols)
 }

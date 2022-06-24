@@ -51,8 +51,10 @@ func TestAeternity(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		valid := NewAeternity().Verify(tt.hash, tt.nonce, tt.sols)
-		if !valid {
+		valid, err := NewAeternity().Verify(tt.hash, tt.nonce, tt.sols)
+		if err != nil {
+			t.Errorf("failed on %d: %v", i, err)
+		} else if !valid {
 			t.Errorf("failed on %d: invalid solution", i)
 		}
 	}

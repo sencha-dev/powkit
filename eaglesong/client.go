@@ -1,6 +1,6 @@
 package eaglesong
 
-type Config struct {
+type Client struct {
 	rounds   int
 	capacity int
 	rate     int
@@ -8,8 +8,8 @@ type Config struct {
 	delim    byte
 }
 
-func New(rounds, capacity, rate, length int, delim byte) *Config {
-	cfg := &Config{
+func New(rounds, capacity, rate, length int, delim byte) *Client {
+	cfg := &Client{
 		rounds:   rounds,
 		capacity: capacity,
 		rate:     rate,
@@ -20,18 +20,10 @@ func New(rounds, capacity, rate, length int, delim byte) *Config {
 	return cfg
 }
 
-func NewNervos() *Config {
-	var cfg = &Config{
-		rounds:   43,
-		capacity: 32,
-		rate:     256,
-		length:   32,
-		delim:    0x06,
-	}
-
-	return cfg
+func NewNervos() *Client {
+	return New(43, 32, 256, 32, 0x06)
 }
 
-func (cfg *Config) Compute(input []byte) []byte {
-	return cfg.eaglesong(input)
+func (c *Client) Compute(input []byte) []byte {
+	return eaglesong(c.rounds, c.capacity, c.rate, c.delim, input)
 }

@@ -1,19 +1,19 @@
 # Proof of Work Algorithms
 
-[![Go Test](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/go-pow/actions/workflows/go.yml)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/go-pow)](https://pkg.go.dev/github.com/sencha-dev/go-pow?tab=doc)
+[![Go Test](https://github.com/sencha-dev/powkit/actions/workflows/go.yml/badge.svg)](https://github.com/sencha-dev/powkit/actions/workflows/go.yml)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/sencha-dev/powkit)](https://pkg.go.dev/github.com/sencha-dev/powkit?tab=doc)
 
 # Overview
 
 *Note: This library is still in active development and is
 subject to breaking changes*
 
-Though there is a wide variety of Proof of Work algorithms, finding the technical details
+Though there are a wide variety of Proof of Work algorithms, finding the technical details
 for the implementations is quite a task. Both Kawpow and Firopow are variations off of ProgPow,
-though finding the exact differences is no easy task. This is meant to be a unified library to
+though finding the exact differences is painful. This is meant to be a unified library to
 make the implementation of existing Proof of Work algorithms easier. 
 
-All DAG-based algorithms only implement a light DAG, which is sufficient for verification
+All DAG-based algorithms only implement a light DAG, which is sufficient for validation
 but not full nodes or miners. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
 Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are stored), but verthash
 requires a strict 1.2Gb, so be careful if you're using verthash in memory. At the time of writing, running 
@@ -38,30 +38,20 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 
 # Things to Note
 
-  - There is no validation on hash input sizes - generally it is 32 bytes but it can vary by algorithm. It absolutely *can* panic
-  if the wrong input size is used. I probably should be stricter about this, or at least define what the expectations are, but for 
-  now the best way to check is in the tests.
-  - Most of these algorithms are partially optimized, though there surely could be some improvements. However, that is not the goal since
-  these have never been intended to be used for miners. All of these algorithms far surpass a reasonable threshold for performance and I
+  - Most of these algorithms are partially optimized but I'm sure they could be improvemed. That being said, that will probably never happen
+  since these have never been intended to be used for miner clients. All of these algorithms far surpass a reasonable threshold for performance and I
   have no intention of hypertuning them.
   - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
-  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)). It wouldn't be hard to implement other Cuckoo Cycle algorithms (cuckatoo, cuckaroo),
-  there just isn't really a need at this point since Grin is fairly annoying. BlockCypher implements the other algorithms [here](https://github.com/blockcypher/libgrin/tree/master/core/pow).
+  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)).
+  - The base ProgPow implementation ("ProgPow094") exists in the `internal/progpow` package.
   - Since ZelHash is such a minor Equihash variant, it is treated as just "twisted Equihash" (in `equihash/`).
   - All testing is done on linux, windows support is hazy at best. 
   - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
-  - The base ProgPow implementation ("ProgPow094") exists in the `internal/progpow` package.
   - As of now, the only other algorithms that are on the list of "maybes" are: [cryptonight](https://github.com/Equim-chan/cryptonight),
-  [randomx](https://git.dero.io/DERO_Foundation/RandomX), X25X, and the full cuckoo suite (cuckatoo, cuckaroo). 
+  [randomx](https://git.dero.io/DERO_Foundation/RandomX), X25X, and the full 
+  cuckoo suite ([cuckatoo, cuckaroo]((https://github.com/blockcypher/libgrin/tree/master/core/pow)). 
 
 # Roadmap
-
-Most profitable Proof of Work chains nowdays use some sort of DAG, and that is almost always the Ethash DAG.
-There are then layers on top of the Ethash DAG like ProgPow, which can be considered both a Proof of Work 
-algorithm and a class of algorithms (Kawpow, Firopow). There isn't really a good way to organize all of these
-into a given structure but even if there was, a new algorithm could appear tomorrow and break that structure.
-powkit takes the approach of allowing most parameters to be varied and will implement new algorithms on an
-as-needed basis.
 
 Currently, though powkit is used in production internally, it probably isn't a good idea to use yourself. The
 API is still in flux and each minor version will probably be breaking. Once we do a v1.0.0 release, the structure

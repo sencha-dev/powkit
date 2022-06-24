@@ -36,8 +36,10 @@ func TestComputeConflux(t *testing.T) {
 
 	client := NewConflux()
 	for i, tt := range tests {
-		digest := client.Compute(tt.height, tt.nonce, tt.hash)
-		if bytes.Compare(digest, tt.digest) != 0 {
+		digest, err := client.Compute(tt.hash, tt.height, tt.nonce)
+		if err != nil {
+			t.Errorf("failed on %d: %v", i, err)
+		} else if bytes.Compare(digest, tt.digest) != 0 {
 			t.Errorf("failed on %d: digest mismatch: have %x, want %x", i, digest, tt.digest)
 		}
 	}

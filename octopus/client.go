@@ -3,6 +3,7 @@
 package octopus
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/sencha-dev/powkit/internal/common"
@@ -10,12 +11,12 @@ import (
 )
 
 type Client struct {
-	*dag.DAG
+	data *dag.DAG
 }
 
 func New(cfg dag.Config) *Client {
 	client := &Client{
-		DAG: dag.New(cfg),
+		data: dag.New(cfg),
 	}
 
 	return client
@@ -50,14 +51,18 @@ func NewConflux() *Client {
 	return New(cfg)
 }
 
-func (c *Client) Compute(height, nonce uint64, hash []byte) []byte {
-	epoch := c.CalcEpoch(height)
-	size := c.DatasetSize(epoch)
-	cache := c.GetCache(epoch)
-	lookup := c.NewLookupFunc512(cache, epoch)
+func (c *Client) Compute(hash []byte, height, nonce uint64) ([]byte, error) {
+	if len(hash) != 32 {
+		return nil, fmt.Errorf("hash must be 32 bytes")
+	}
+
+	epoch := c.data.CalcEpoch(height)
+	size := c.data.DatasetSize(epoch)
+	cache := c.data.GetCache(epoch)
+	lookup := c.data.NewLookupFunc512(cache, epoch)
 
 	digest := octopus(hash, nonce, size, lookup)
 	runtime.KeepAlive(cache)
 
-	return digest
+	return digest, nil
 }
