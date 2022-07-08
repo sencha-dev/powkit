@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/dchest/blake2b v1.0.0
 	github.com/edsrzf/mmap-go v1.0.0
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 )
 
-require golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
+require golang.org/x/sys v0.0.0-20211023085530-d6a326fbbf70 // indirect
