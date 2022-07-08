@@ -8,52 +8,75 @@ import (
 	"github.com/sencha-dev/powkit/internal/crypto"
 )
 
+type CuckooVariant int
+
+const (
+	Cuckoo CuckooVariant = iota
+	Cuckatoo
+	Cuckaroo
+	Cuckarood
+	Cuckaroom
+	Cuckarooz
+)
+
 type Client struct {
+	variant   CuckooVariant
 	proofSize int
 	edgeBits  int
 	edgeMask  uint64
-	nodeBits  int
-	nodeMask  uint64
+	sipnode   crypto.SipNodeFunc
+	sipblock  crypto.SipBlockFunc
 }
 
-func New(edgeBits, nodeBits, proofSize int) *Client {
+func newClient(variant CuckooVariant, edgeBits, proofSize int, sipnode crypto.SipNodeFunc, sipblock crypto.SipBlockFunc) *Client {
 	c := &Client{
+		variant:   variant,
 		proofSize: proofSize,
 		edgeBits:  edgeBits,
 		edgeMask:  (uint64(1) << edgeBits) - 1,
-		nodeBits:  nodeBits,
-		nodeMask:  (uint64(1) << nodeBits) - 1,
+		sipnode:   sipnode,
+		sipblock:  sipblock,
 	}
 
 	return c
 }
 
-func NewAeternity() *Client {
-	return New(29, 29, 42)
+func NewCuckoo(edgeBits, proofSize int, sipnode crypto.SipNodeFunc, sipblock crypto.SipBlockFunc) *Client {
+	return newClient(Cuckoo, edgeBits, proofSize, sipnode, sipblock)
 }
 
-func (c *Client) Verify(hash []byte, nonce uint64, sols []uint64) (bool, error) {
-	if len(hash) != 32 {
-		return false, fmt.Errorf("hash must be 32 bytes")
-	} else if len(sols) != 42 {
-		return false, fmt.Errorf("sols must be 42 uint64s")
-	}
+func NewAeternity() *Client {
+	return NewCuckoo(29, 42, crypto.SipNode24Legacy, nil)
+}
 
-	// encode header
-	nonceBytes := make([]uint8, 8)
-	binary.LittleEndian.PutUint64(nonceBytes, nonce)
-	hashEncoded := []byte(base64.StdEncoding.EncodeToString(hash))
-	nonceEncoded := []byte(base64.StdEncoding.EncodeToString(nonceBytes))
-	header := append(hashEncoded, append(nonceEncoded, make([]byte, 24)...)...)
+func NewCuckaroo(edgeBits, proofSize int, sipnode crypto.SipNodeFunc, sipblock crypto.SipBlockFunc) *Client {
+	return newClient(Cuckaroo, edgeBits, proofSize, sipnode, sipblock)
+}
+
+func NewCortex() *Client {
+	return NewCuckaroo(30, 42, nil, crypto.SipBlock48)
+}
+
+func (c *Client) Verify(header []byte, sols []uint64) (bool, error) {
+	if len(sols) != c.proofSize {
+		return false, fmt.Errorf("sols must be %d uint64s", c.proofSize)
+	}
 
 	// create siphash keys
-	h := crypto.Blake2b256(header)
+	hash := crypto.Blake2b256(header)
 	keys := [4]uint64{
-		binary.LittleEndian.Uint64(h[0:8]),
-		binary.LittleEndian.Uint64(h[8:16]),
-		binary.LittleEndian.Uint64(h[16:24]),
-		binary.LittleEndian.Uint64(h[24:32]),
+		binary.LittleEndian.Uint64(hash[0:8]),
+		binary.LittleEndian.Uint64(hash[8:16]),
+		binary.LittleEndian.Uint64(hash[16:24]),
+		binary.LittleEndian.Uint64(hash[24:32]),
 	}
 
-	return verify(c.proofSize, c.edgeMask, keys, sols)
+	switch c.variant {
+	case Cuckoo:
+		return c.cuckoo(keys, sols)
+	case Cuckaroo:
+		return c.cuckaroo(keys, sols)
+	default:
+		return false, fmt.Errorf("unsupported cuckoo variant")
+	}
 }

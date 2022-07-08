@@ -35,21 +35,19 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 | Eaglesong     | no          | yes
 | BeamHashIII   | no          | yes
 | ZelHash       | no          | yes
+| Cortex        | no          | yes
 
 # Things to Note
 
-  - Most of these algorithms are partially optimized but I'm sure they could be improved. That being said, that will probably never happen
-  since these have never been intended to be used for miner clients. All of these algorithms far surpass a reasonable threshold for performance and I
-  have no intention of hypertuning them.
-  - Cuckoo Cycle is built specifically for Aeternity. There is a modification of the `sipnode` function in the current version
-  of tromp's cuckoo algorithms that Aeternity does not use (a Nicehash dev gives more details [here](https://forum.aeternity.com/t/support-aeternity-stratum-implementation/3140/6)).
+  - Most of these algorithms are partially optimized but I'm sure they could be improved. That being said, that will probably 
+  never happen since these have never been intended to be used for miner clients. All of these algorithms far surpass 
+  a reasonable threshold for performance and I have no intention of hypertuning them.
   - The base ProgPow implementation ("ProgPow094") exists in the `internal/progpow` package.
   - Since ZelHash is such a minor Equihash variant, it is treated as just "twisted Equihash" (in `equihash/`).
   - All testing is done on linux, windows support is hazy at best. 
   - The library assumes the host architecture is little-endian, I'm fairly confident big-endian architectures will not function properly.
   - As of now, the only other algorithms that are on the list of "maybes" are: [cryptonight](https://github.com/Equim-chan/cryptonight),
-  [randomx](https://git.dero.io/DERO_Foundation/RandomX), X25X, and the full 
-  cuckoo suite ([cuckatoo, cuckaroo](https://github.com/blockcypher/libgrin/tree/master/core/pow)). 
+  [randomx](https://git.dero.io/DERO_Foundation/RandomX), X25X, and cuckatoo. 
 
 # Roadmap
 

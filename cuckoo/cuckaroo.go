@@ -2,7 +2,7 @@
 
 package cuckoo
 
-func (c *Client) cuckoo(siphashKeys [4]uint64, edges []uint64) (bool, error) {
+func (c *Client) cuckaroo(siphashKeys [4]uint64, edges []uint64) (bool, error) {
 	uvs := make([]uint64, 2*c.proofSize)
 	var xor0, xor1 uint64
 
@@ -13,10 +13,10 @@ func (c *Client) cuckoo(siphashKeys [4]uint64, edges []uint64) (bool, error) {
 			return false, ErrPowTooSmall
 		}
 
-		uvs[2*n] = c.sipnode(c.edgeMask, siphashKeys, edges[n], 0)
+		edge := c.sipblock(siphashKeys, edges[n])
+		uvs[2*n] = edge & c.edgeMask
 		xor0 ^= uvs[2*n]
-
-		uvs[2*n+1] = c.sipnode(c.edgeMask, siphashKeys, edges[n], 1)
+		uvs[2*n+1] = (edge >> 32) & c.edgeMask
 		xor1 ^= uvs[2*n+1]
 	}
 
