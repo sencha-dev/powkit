@@ -30,6 +30,7 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 | Octopus       | yes         | yes
 | Verthash      | yes         | yes
 | Equihash      | no          | yes
+| HeavyHash     | no          | yes
 | Autolykos2    | no          | yes
 | Cuckoo Cycle  | no          | yes
 | Eaglesong     | no          | yes
