@@ -14,10 +14,9 @@ but finding the exact differences is painful. This is meant to be a unified libr
 make the specification of existing Proof of Work algorithms more standardized. 
 
 All DAG-based algorithms only implement a light DAG, which is sufficient for validation
-but not full nodes or miners. For the DAG-based algorithms and verthash, data is cached in `~/.powcache`.
-Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are stored), but verthash
-requires a strict 1.2Gb, so be careful if you're using verthash in memory. At the time of writing, running 
-`make test` will throw about 3.3Gb of data into `~/.powcache` due to the variety and breadth of tests.
+but not full nodes or miners. For the DAG-based algorithms, data is cached in `~/.powcache`.
+Ethash will generally be between 40-80Mb per epoch (and generally 3 caches are stored). At the time of writing, running 
+`make test` will throw about 800Mb of data into `~/.powcache` due to the variety and breadth of tests.
 
 # Algorithms
 
@@ -28,7 +27,6 @@ requires a strict 1.2Gb, so be careful if you're using verthash in memory. At th
 | Kawpow        | yes         | yes
 | Firopow       | yes         | yes
 | Octopus       | yes         | yes
-| Verthash      | yes         | yes
 | Equihash      | no          | yes
 | HeavyHash     | no          | yes
 | Autolykos2    | no          | yes
@@ -62,7 +60,6 @@ will probably be pretty set in stone.
   - [Ethereum Classic Labs: go-etchash](https://github.com/etclabscore/go-etchash)
   - [RavencoinCommunity: cpp-kawpow](https://github.com/RavenCommunity/cpp-kawpow/)
   - [Zcash: librustzcash (equihash)](https://github.com/zcash/librustzcash/tree/master/components/equihash)
-  - [Gert-Jaap Glasbergen: verthash-go](https://github.com/gertjaap/verthash-go/)
   - [Firo: firo](https://github.com/firoorg/firo/tree/master/src/crypto/progpow)
   - [Ergo: ergo](https://github.com/ergoplatform/ergo/blob/0af9dd9d8846d672c1e2a77f8ab29963fa5acd1e/src/main/scala/org/ergoplatform/mining/AutolykosPowScheme.scala)
   - [leifjacky: erg-gominer-demo](https://github.com/leifjacky/erg-gominer-demo)
